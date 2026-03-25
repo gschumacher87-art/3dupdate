@@ -1,10 +1,12 @@
-// app.js
+// project-folder/app.js
 import { Dragon } from './dragon.js';
 import { Collectible } from './collectible.js';
 import { Pipe } from './obstacle.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+
+// Responsive canvas
 canvas.width = window.innerWidth * 0.8;
 canvas.height = window.innerHeight * 0.8;
 
@@ -24,9 +26,7 @@ const minPipeDistance = 250;
 
 // --- Load dragon sprite ---
 const dragonSprite = new Image();
-dragonSprite.src = './dragon.png';
-
-// --- Initialize dragon after sprite loads ---
+dragonSprite.src = './dragon.png'; // relative to app.js
 dragonSprite.onload = () => {
   dragon = new Dragon(5 * gridSize, 5 * gridSize);
   dragon.sprite = dragonSprite;
@@ -50,8 +50,8 @@ document.addEventListener('keydown', e => {
 // --- Mobile buttons ---
 ['up','down','left','right'].forEach(dir => {
   const btn = document.getElementById(dir);
-  btn.addEventListener('click', () => { if (!isOpposite(dir,currentDirection)) nextDirection = dir; });
-  btn.addEventListener('touchstart', e => { e.preventDefault(); if (!isOpposite(dir,currentDirection)) nextDirection = dir; });
+  btn.addEventListener('click', () => { if (!isOpposite(dir, currentDirection)) nextDirection = dir; });
+  btn.addEventListener('touchstart', e => { e.preventDefault(); if (!isOpposite(dir, currentDirection)) nextDirection = dir; });
 });
 
 // --- Helpers ---
@@ -80,7 +80,7 @@ function shouldSpawnPipe(){
 
 // --- Game loop ---
 function gameLoop(timestamp){
-  if(!dragon) return; // wait for sprite load
+  if(!dragon) return; // wait for sprite
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -88,14 +88,14 @@ function gameLoop(timestamp){
   if(gameRunning && timestamp - lastTick > tickRate){
     lastTick = timestamp;
 
-    // move dragon
+    // Move dragon
     currentDirection = nextDirection;
     dragon.move(currentDirection, gridSize);
 
-    // move pipes
+    // Move pipes
     pipes.forEach(p => p.move());
 
-    // check collisions with pipes
+    // Check collisions with pipes
     pipes.forEach(p => {
       if(p.checkCollision(dragon)){
         gameRunning = false;
@@ -108,10 +108,10 @@ function gameLoop(timestamp){
       }
     });
 
-    // remove off-screen pipes
+    // Remove off-screen pipes
     pipes = pipes.filter(p => p.x + p.width > 0);
 
-    // check collectibles
+    // Check collectibles
     collectibles.forEach(c => {
       if(c.checkCollision(dragon)){
         score++;
@@ -121,19 +121,19 @@ function gameLoop(timestamp){
     });
     collectibles = collectibles.filter(c => !c.collected);
 
-    // spawn new pipe if needed
+    // Spawn new pipe if needed
     if(shouldSpawnPipe()){
       const topHeight = Math.random() * (canvas.height - 150 - 100) + 50;
       pipes.push(new Pipe(canvas.width, topHeight));
     }
   }
 
-  // draw everything
+  // Draw everything
   dragon.draw(ctx);
   pipes.forEach(p => p.draw(ctx, canvas.height));
   collectibles.forEach(c => c.draw(ctx));
 
-  // update score
+  // Update score
   document.getElementById('score').textContent = 'Score: ' + score;
 
   requestAnimationFrame(gameLoop);
