@@ -7,19 +7,17 @@ export class Pipe {
     this.scored = false;
   }
 
-  move(speed = 3) {
-    this.x -= speed;
-  }
+  move(speed = 3) { this.x -= speed; }
 
   draw(ctx, canvasHeight) {
-    ctx.fillStyle = '#ff0000';
+    ctx.fillStyle = 'red';
     ctx.fillRect(this.x, 0, this.width, this.topHeight);
     ctx.fillRect(this.x, this.topHeight + this.gapHeight, this.width, canvasHeight - this.topHeight - this.gapHeight);
   }
 
   checkCollision(dragon) {
-    return dragon.x + dragon.width > this.x &&
+    return dragon.x + dragon.size > this.x &&
            dragon.x < this.x + this.width &&
-           (dragon.y < this.topHeight || dragon.y + dragon.height > this.topHeight + this.gapHeight);
+           (dragon.y < this.topHeight || dragon.y + dragon.size > this.topHeight + this.gapHeight);
   }
 }
