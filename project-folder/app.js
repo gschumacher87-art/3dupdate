@@ -13,21 +13,38 @@ window.addEventListener('resize', resizeCanvas);
 
 // --- Load dragon sprite ---
 const dragonSprite = new Image();
-// Path **relative to index.html** because <script> is in project-folder/
 dragonSprite.src = 'project-folder/dragon.png';
 
-// Simple test: draw once after load
-dragonSprite.onload = () => {
-  console.log('Sprite loaded!', dragonSprite.width, dragonSprite.height);
+// Sprite sheet settings
+const frameWidth = 64;   // width of a single dragon in the sheet
+const frameHeight = 64;  // height of a single dragon
+let frameIndex = 0;      // current frame to display
+const totalFrames = 3;   // number of frames in the sheet
+
+// Draw function
+function drawDragon() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // Draw the sprite at center, scale to 64x64
+
+  // Draw only one frame
   ctx.drawImage(
     dragonSprite,
-    canvas.width / 2 - 32,
-    canvas.height / 2 - 32,
-    64,
-    64
+    frameIndex * frameWidth, 0, // source x, y
+    frameWidth, frameHeight,    // source width, height
+    canvas.width / 2 - frameWidth / 2, // canvas x
+    canvas.height / 2 - frameHeight / 2, // canvas y
+    frameWidth, frameHeight     // destination width, height
   );
+
+  // Move to next frame
+  frameIndex = (frameIndex + 1) % totalFrames;
+
+  requestAnimationFrame(drawDragon);
+}
+
+// Start after sprite loads
+dragonSprite.onload = () => {
+  console.log('Sprite loaded!', dragonSprite.width, dragonSprite.height);
+  drawDragon();
 };
 
 dragonSprite.onerror = () => console.error('Failed to load sprite. Check path!');
