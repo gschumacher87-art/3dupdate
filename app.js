@@ -27,6 +27,9 @@ let nextDirection = 'right';
 document.getElementById('startBtn').addEventListener('click', () => {
   resetGame();
   gameRunning = true;
+
+  // Hide start button
+  document.getElementById('startBtn').style.display = 'none';
 });
 
 // Keyboard controls
