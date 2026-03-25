@@ -14,16 +14,14 @@ let gameRunning = false;
 let dragon = new Dragon(5 * gridSize, 5 * gridSize);
 let pipes = [];
 let collectibles = [];
-let lastPipeTime = 0;
-let pipeInterval = 2000;
+
+let lastTick = 0;
+const tickRate = 200; // controls speed
+const minPipeDistance = 250; // minimum horizontal distance between pipes
 
 // Snake-style directions
 let currentDirection = 'right';
 let nextDirection = 'right';
-
-// Movement tick
-const tickRate = 200; // slower for proper pacing
-let lastTick = 0;
 
 // Start button
 document.getElementById('startBtn').addEventListener('click', () => {
@@ -33,12 +31,7 @@ document.getElementById('startBtn').addEventListener('click', () => {
 
 // Keyboard controls
 document.addEventListener('keydown', e => {
-  const dirMap = {
-    'ArrowUp': 'up',
-    'ArrowDown': 'down',
-    'ArrowLeft': 'left',
-    'ArrowRight': 'right'
-  };
+  const dirMap = { 'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right' };
   const dir = dirMap[e.code];
   if (dir && !isOpposite(dir, currentDirection)) nextDirection = dir;
 });
@@ -64,9 +57,15 @@ function resetGame() {
   nextDirection = 'right';
   pipes = [];
   collectibles = [];
-  lastPipeTime = 0;
   lastTick = 0;
   gameRunning = true;
+}
+
+// --- Determine if a new pipe should spawn ---
+function shouldSpawnPipe() {
+  if (!pipes.length) return true;
+  const lastPipe = pipes[pipes.length - 1];
+  return lastPipe.x < canvas.width - minPipeDistance;
 }
 
 // --- Game loop ---
@@ -93,7 +92,7 @@ function gameLoop(timestamp) {
       }
       if (!p.scored && dragon.x > p.x + p.width) {
         score++;
-        dragon.grow(1); // grow gradually
+        dragon.grow(1); // gradual tail growth
         p.scored = true;
       }
     });
@@ -113,11 +112,10 @@ function gameLoop(timestamp) {
     // Remove collected collectibles
     collectibles = collectibles.filter(c => !c.collected);
 
-    // Generate new pipe
-    if (!lastPipeTime || timestamp - lastPipeTime > pipeInterval) {
+    // Generate new pipe only if enough distance
+    if (shouldSpawnPipe()) {
       let topHeight = Math.random() * (canvas.height - 150 - 100) + 50;
       pipes.push(new Pipe(canvas.width, topHeight));
-      lastPipeTime = timestamp;
     }
   }
 
