@@ -29,10 +29,18 @@ let pipeInterval = 2000;
 let lastPipeTime = 0;
 
 // Controls
+function flap() {
+  dragon.velocity = flapPower;
+}
+
+// Desktop
 document.addEventListener('keydown', e => {
-  if (e.code === 'Space') dragon.velocity = flapPower;
+  if (e.code === 'Space' || e.code === 'ArrowUp') flap();
 });
-document.addEventListener('click', () => dragon.velocity = flapPower);
+
+// Mobile / buttons
+document.getElementById('up').addEventListener('click', flap);
+document.getElementById('up').addEventListener('touchstart', e => { e.preventDefault(); flap(); });
 
 // Game loop
 function gameLoop(timestamp) {
