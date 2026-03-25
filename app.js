@@ -10,18 +10,19 @@ canvas.height = window.innerHeight * 0.8;
 const gridSize = 20;
 let score = 0;
 let gameRunning = false;
+
 let dragon = new Dragon(5 * gridSize, 5 * gridSize);
 let pipes = [];
 let collectibles = [];
 let lastPipeTime = 0;
 let pipeInterval = 2000;
 
-// Snake-style direction
+// Snake-style directions
 let currentDirection = 'right';
 let nextDirection = 'right';
 
 // Movement tick
-const tickRate = 150; // ms per move, adjust for speed
+const tickRate = 200; // slower for proper pacing
 let lastTick = 0;
 
 // Start button
@@ -32,7 +33,13 @@ document.getElementById('startBtn').addEventListener('click', () => {
 
 // Keyboard controls
 document.addEventListener('keydown', e => {
-  const dir = { 'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right' }[e.code];
+  const dirMap = {
+    'ArrowUp': 'up',
+    'ArrowDown': 'down',
+    'ArrowLeft': 'left',
+    'ArrowRight': 'right'
+  };
+  const dir = dirMap[e.code];
   if (dir && !isOpposite(dir, currentDirection)) nextDirection = dir;
 });
 
@@ -62,56 +69,62 @@ function resetGame() {
   gameRunning = true;
 }
 
-// Main game loop
+// --- Game loop ---
 function gameLoop(timestamp) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Only move dragon on tick if game is running
-  if (gameRunning) {
-    if (!lastTick) lastTick = timestamp;
-    if (timestamp - lastTick > tickRate) {
-      currentDirection = nextDirection;
-      dragon.move(currentDirection, gridSize);
-      lastTick = timestamp;
+  // --- Tick updates ---
+  if (!lastTick) lastTick = timestamp;
+  if (gameRunning && timestamp - lastTick > tickRate) {
+    lastTick = timestamp;
+
+    // Move dragon
+    currentDirection = nextDirection;
+    dragon.move(currentDirection, gridSize);
+
+    // Move pipes
+    pipes.forEach(p => p.move());
+
+    // Check collisions with pipes
+    pipes.forEach(p => {
+      if (p.checkCollision(dragon)) {
+        gameRunning = false;
+        alert('Game Over!');
+      }
+      if (!p.scored && dragon.x > p.x + p.width) {
+        score++;
+        dragon.grow(1); // grow gradually
+        p.scored = true;
+      }
+    });
+
+    // Remove off-screen pipes
+    pipes = pipes.filter(p => p.x + p.width > 0);
+
+    // Check collectibles
+    collectibles.forEach(c => {
+      if (c.checkCollision(dragon)) {
+        score++;
+        dragon.grow(1);
+        c.collected = true;
+      }
+    });
+
+    // Remove collected collectibles
+    collectibles = collectibles.filter(c => !c.collected);
+
+    // Generate new pipe
+    if (!lastPipeTime || timestamp - lastPipeTime > pipeInterval) {
+      let topHeight = Math.random() * (canvas.height - 150 - 100) + 50;
+      pipes.push(new Pipe(canvas.width, topHeight));
+      lastPipeTime = timestamp;
     }
   }
 
-  // Draw dragon
+  // --- Draw everything ---
   dragon.draw(ctx);
-
-  // Pipes
-  if (!lastPipeTime || timestamp - lastPipeTime > pipeInterval) {
-    let topHeight = Math.random() * (canvas.height - 150 - 100) + 50;
-    pipes.push(new Pipe(canvas.width, topHeight));
-    lastPipeTime = timestamp;
-  }
-
-  for (let i = pipes.length - 1; i >= 0; i--) {
-    pipes[i].move();
-    pipes[i].draw(ctx, canvas.height);
-
-    if (gameRunning && pipes[i].checkCollision(dragon)) {
-      gameRunning = false;
-      alert('Game Over!');
-    }
-
-    if (!pipes[i].scored && dragon.x > pipes[i].x + pipes[i].width) {
-      score++;
-      dragon.grow();
-      pipes[i].scored = true;
-    }
-
-    if (pipes[i].x + pipes[i].width < 0) pipes.splice(i, 1);
-  }
-
-  // Collectibles
-  collectibles.forEach(c => {
-    c.draw(ctx);
-    if (gameRunning && c.checkCollision(dragon)) {
-      score++;
-      dragon.grow();
-    }
-  });
+  pipes.forEach(p => p.draw(ctx, canvas.height));
+  collectibles.forEach(c => c.draw(ctx));
 
   // Update score
   document.getElementById('score').textContent = 'Score: ' + score;
@@ -119,5 +132,5 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-// Start the loop immediately so canvas renders
+// Start loop immediately
 gameLoop();
