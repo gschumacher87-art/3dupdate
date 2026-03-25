@@ -1,0 +1,22 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background: linear-gradient(to top, #1e1e2f, #4b2a7b);
+  font-family: Arial, sans-serif;
+  color: #fff;
+}
+
+#game {
+  display: block;
+  margin: 0 auto;
+  background: #222;
+  border: 2px solid #fff;
+}
+
+#score {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+}
