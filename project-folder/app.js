@@ -1,47 +1,44 @@
-
-// project-folder/app.js
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth * 0.8;
-    canvas.height = window.innerHeight * 0.8;
-    drawSprite();
-}
-window.addEventListener('resize', resizeCanvas);
+canvas.width = window.innerWidth * 0.8;
+canvas.height = window.innerHeight * 0.8;
 
-// Load sprite
+// Dragon sprite setup
 const dragonSprite = new Image();
-dragonSprite.src = './project-folder/dragon.png';
+dragonSprite.src = './project-folder/dragon.png'; // sprite sheet with 3 frames
+
+const spriteWidth = 64;   // width of one frame
+const spriteHeight = 64;  // height of one frame
+const scale = 2;          // how big we draw it on canvas
+let frameIndex = 0;
+const totalFrames = 3;    // number of frames
+const frameSpeed = 10;    // higher = slower animation
+let tick = 0;
 
 dragonSprite.onload = () => {
-    console.log('Sprite loaded');
-    resizeCanvas();
+    requestAnimationFrame(gameLoop);
 };
 
-dragonSprite.onerror = () => {
-    console.error('Failed to load dragon.png. Check file location!');
-};
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// Draw the first frame centered
-function drawSprite() {
-    if (!dragonSprite.complete) return;
-
-    ctx.fillStyle = '#222';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const totalFrames = 3; // your sprite sheet frames horizontally
-    const frameWidth = dragonSprite.width / totalFrames;
-    const frameHeight = dragonSprite.height;
-
-    const drawSize = Math.min(canvas.width, canvas.height) / 4; // scales for screen
-
-    const x = canvas.width / 2 - drawSize / 2;
-    const y = canvas.height / 2 - drawSize / 2;
-
+    // Draw current frame
     ctx.drawImage(
         dragonSprite,
-        0, 0, frameWidth, frameHeight, // source rectangle = first frame
-        x, y, drawSize, drawSize        // destination rectangle
+        frameIndex * spriteWidth, 0,      // source x, y
+        spriteWidth, spriteHeight,        // source width, height
+        canvas.width / 2 - (spriteWidth*scale)/2,  // dest x
+        canvas.height / 2 - (spriteHeight*scale)/2,// dest y
+        spriteWidth * scale,              // dest width
+        spriteHeight * scale              // dest height
     );
+
+    // Animate frames
+    tick++;
+    if (tick % frameSpeed === 0) {
+        frameIndex = (frameIndex + 1) % totalFrames;
+    }
+
+    requestAnimationFrame(gameLoop);
 }
