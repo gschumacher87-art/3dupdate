@@ -1,5 +1,3 @@
-import { Dragon } from './dragon.js';
-
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
@@ -7,40 +5,16 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth * 0.8;
 canvas.height = window.innerHeight * 0.8;
 
-let dragon = null;
-const gridSize = 20;
-
-// Load dragon sprite
+// Dragon sprite
 const dragonSprite = new Image();
-dragonSprite.src = './dragon.png';
+dragonSprite.src = './dragon.png'; // relative to app.js
+
 dragonSprite.onload = () => {
-  dragon = new Dragon(canvas.width / 2, canvas.height / 2, 64);
-  dragon.sprite = dragonSprite;
-  requestAnimationFrame(gameLoop);
+  // Draw once when loaded
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const x = (canvas.width - dragonSprite.width) / 2;
+  const y = (canvas.height - dragonSprite.height) / 2;
+
+  ctx.drawImage(dragonSprite, x, y);
 };
-
-// Direction
-let direction = null;
-
-// Keyboard controls
-document.addEventListener('keydown', e => {
-  if(e.code === 'ArrowUp') direction = 'up';
-  else if(e.code === 'ArrowDown') direction = 'down';
-  else if(e.code === 'ArrowLeft') direction = 'left';
-  else if(e.code === 'ArrowRight') direction = 'right';
-});
-
-// Game loop
-function gameLoop() {
-  if(!dragon) return;
-
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  if(direction) {
-    dragon.move(direction, gridSize);
-  }
-
-  dragon.draw(ctx);
-
-  requestAnimationFrame(gameLoop);
-}
