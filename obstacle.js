@@ -7,36 +7,36 @@ export class Pipe {
     this.scored = false;
   }
 
-  move(speed = 2) { // slower = snake style
+  move(speed = 2) { // slower = snake-style pacing
     this.x -= speed;
   }
 
   draw(ctx, canvasHeight) {
     // --- Top pipe ---
     // Pipe lip
-    ctx.fillStyle = '#4d0000';
+    ctx.fillStyle = '#cc6600'; // darker orange for lip
     ctx.fillRect(this.x - 5, this.topHeight - 20, this.width + 10, 20);
 
-    // Main pipe
-    ctx.fillStyle = '#ff0000';
+    // Main pipe body
+    ctx.fillStyle = '#ff9900'; // bright orange
     ctx.fillRect(this.x, 0, this.width, this.topHeight);
 
-    // Top pipe shading
-    ctx.fillStyle = '#8B0000';
+    // Shaded edges for depth
+    ctx.fillStyle = '#cc6600'; // darker side
     ctx.fillRect(this.x, 0, 5, this.topHeight); // left edge
     ctx.fillRect(this.x + this.width - 5, 0, 5, this.topHeight); // right edge
 
     // --- Bottom pipe ---
     // Pipe lip
-    ctx.fillStyle = '#4d0000';
+    ctx.fillStyle = '#cc6600'; // darker orange
     ctx.fillRect(this.x - 5, this.topHeight + this.gapHeight, this.width + 10, 20);
 
-    // Main pipe
-    ctx.fillStyle = '#ff0000';
+    // Main pipe body
+    ctx.fillStyle = '#ff9900'; // bright orange
     ctx.fillRect(this.x, this.topHeight + this.gapHeight, this.width, canvasHeight - (this.topHeight + this.gapHeight));
 
-    // Bottom pipe shading
-    ctx.fillStyle = '#8B0000';
+    // Shaded edges for depth
+    ctx.fillStyle = '#cc6600';
     ctx.fillRect(this.x, this.topHeight + this.gapHeight, 5, canvasHeight - (this.topHeight + this.gapHeight)); // left edge
     ctx.fillRect(this.x + this.width - 5, this.topHeight + this.gapHeight, 5, canvasHeight - (this.topHeight + this.gapHeight)); // right edge
   }
