@@ -20,6 +20,10 @@ let pipeInterval = 2000;
 let currentDirection = 'right';
 let nextDirection = 'right';
 
+// Movement tick
+const tickRate = 150; // ms per move, adjust for speed
+let lastTick = 0;
+
 // Start button
 document.getElementById('startBtn').addEventListener('click', () => {
   resetGame();
@@ -54,17 +58,22 @@ function resetGame(){
   pipes=[];
   collectibles=[];
   lastPipeTime=0;
+  lastTick=0;
 }
 
+// Main game loop
 function gameLoop(timestamp){
-  if(!gameRunning) return requestAnimationFrame(gameLoop);
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // Update direction
-  currentDirection = nextDirection;
+  // Only move dragon on tick
+  if(!lastTick) lastTick = timestamp;
+  if(timestamp - lastTick > tickRate){
+    currentDirection = nextDirection;
+    dragon.move(currentDirection, gridSize);
+    lastTick = timestamp;
+  }
 
-  // Move dragon
-  dragon.move(currentDirection, gridSize);
+  // Draw dragon
   dragon.draw(ctx);
 
   // Pipes
@@ -77,15 +86,18 @@ function gameLoop(timestamp){
   for(let i=pipes.length-1;i>=0;i--){
     pipes[i].move();
     pipes[i].draw(ctx,canvas.height);
+
     if(pipes[i].checkCollision(dragon)){
       gameRunning=false;
       alert('Game Over!');
     }
+
     if(!pipes[i].scored && dragon.x > pipes[i].x + pipes[i].width){
       score++;
       dragon.grow();
       pipes[i].scored = true;
     }
+
     if(pipes[i].x + pipes[i].width < 0) pipes.splice(i,1);
   }
 
@@ -98,8 +110,10 @@ function gameLoop(timestamp){
     }
   });
 
+  // Update score display
   document.getElementById('score').textContent = 'Score: '+score;
-  requestAnimationFrame(gameLoop);
+
+  if(gameRunning) requestAnimationFrame(gameLoop);
 }
 
 gameLoop();
