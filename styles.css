@@ -41,7 +41,14 @@ body {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+#middle-row {
+  display: flex;
+  gap: 5px;
 }
 
 #controls button {
