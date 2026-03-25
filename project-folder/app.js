@@ -1,4 +1,4 @@
- // project-folder/app.js
+// project-folder/app.js
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
@@ -6,40 +6,43 @@ const ctx = canvas.getContext('2d');
 function resizeCanvas() {
     canvas.width = window.innerWidth * 0.8;
     canvas.height = window.innerHeight * 0.8;
-    drawSprite(); // redraw on resize
+    drawSprite();
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Load sprite sheet
+// Load sprite
 const dragonSprite = new Image();
-dragonSprite.src = './project-folder/dragon.png';
+dragonSprite.src = './project-folder/dragon.png'; // relative to index.html
 
-const totalFrames = 3;       // frames in sheet
-const drawSize = 128;        // scaled size on canvas
-let frameWidth, frameHeight; // will get from image
+const drawSize = 128; // scaled size for display
 
 dragonSprite.onload = () => {
-    frameWidth = dragonSprite.width / totalFrames;
-    frameHeight = dragonSprite.height;
+    console.log('Sprite loaded!');
     drawSprite();
 };
 
+dragonSprite.onerror = () => console.error('Failed to load sprite! Check path.');
+
+// Draw sprite centered
 function drawSprite() {
     if (!dragonSprite.complete) return;
 
-    // clear canvas
-    ctx.fillStyle = '#222'; // dark background
+    // clear canvas with dark background
+    ctx.fillStyle = '#222';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // draw first frame scaled
+    // Draw first frame of sprite sheet
     const x = canvas.width / 2 - drawSize / 2;
     const y = canvas.height / 2 - drawSize / 2;
+
+    // assume full sheet width = 3 frames horizontally
+    const frameWidth = dragonSprite.width / 3;
+    const frameHeight = dragonSprite.height;
+
     ctx.drawImage(
         dragonSprite,
-        0, 0, frameWidth, frameHeight, // source frame
-        x, y, drawSize, drawSize       // scaled size
+        0, 0, frameWidth, frameHeight, // source rectangle (first frame)
+        x, y, drawSize, drawSize       // destination on canvas
     );
 }
-
-dragonSprite.onerror = () => console.error('Failed to load sprite!');
