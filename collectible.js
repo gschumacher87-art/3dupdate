@@ -10,17 +10,17 @@ export class Collectible {
     if (!this.collected) {
       ctx.fillStyle = 'gold';
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+      ctx.arc(this.x + this.size/2, this.y + this.size/2, this.size/2, 0, Math.PI*2);
       ctx.fill();
     }
   }
 
   checkCollision(dragon) {
-    if (!this.collected &&
-        dragon.x < this.x + this.size &&
-        dragon.x + dragon.width > this.x &&
+    if (this.collected) return false;
+    if (dragon.x < this.x + this.size &&
+        dragon.x + dragon.size > this.x &&
         dragon.y < this.y + this.size &&
-        dragon.y + dragon.height > this.y) {
+        dragon.y + dragon.size > this.y) {
       this.collected = true;
       return true;
     }
