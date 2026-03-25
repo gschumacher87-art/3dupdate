@@ -1,4 +1,4 @@
-// project-folder/app.js
+ // project-folder/app.js
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
@@ -6,33 +6,40 @@ const ctx = canvas.getContext('2d');
 function resizeCanvas() {
     canvas.width = window.innerWidth * 0.8;
     canvas.height = window.innerHeight * 0.8;
+    drawSprite(); // redraw on resize
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 // Load sprite sheet
 const dragonSprite = new Image();
-dragonSprite.src = './project-folder/dragon.png'; // relative to index.html
+dragonSprite.src = './project-folder/dragon.png';
+
+const totalFrames = 3;       // frames in sheet
+const drawSize = 128;        // scaled size on canvas
+let frameWidth, frameHeight; // will get from image
 
 dragonSprite.onload = () => {
-    console.log('Sprite loaded:', dragonSprite.width, 'x', dragonSprite.height);
-
-    // Assume 3 frames horizontally in the sheet
-    const totalFrames = 3;
-    const frameWidth = dragonSprite.width / totalFrames;
-    const frameHeight = dragonSprite.height;
-
-    // Draw first frame in center
-    const x = canvas.width / 2 - frameWidth / 2;
-    const y = canvas.height / 2 - frameHeight / 2;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(
-        dragonSprite,        // image
-        0, 0,                // source x, y (first frame)
-        frameWidth, frameHeight, // source width, height
-        x, y,                // canvas x, y
-        frameWidth, frameHeight  // canvas width, height
-    );
+    frameWidth = dragonSprite.width / totalFrames;
+    frameHeight = dragonSprite.height;
+    drawSprite();
 };
 
-dragonSprite.onerror = () => console.error('Failed to load sprite. Check path!');
+function drawSprite() {
+    if (!dragonSprite.complete) return;
+
+    // clear canvas
+    ctx.fillStyle = '#222'; // dark background
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // draw first frame scaled
+    const x = canvas.width / 2 - drawSize / 2;
+    const y = canvas.height / 2 - drawSize / 2;
+    ctx.drawImage(
+        dragonSprite,
+        0, 0, frameWidth, frameHeight, // source frame
+        x, y, drawSize, drawSize       // scaled size
+    );
+}
+
+dragonSprite.onerror = () => console.error('Failed to load sprite!');
