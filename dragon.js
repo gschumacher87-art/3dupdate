@@ -1,5 +1,5 @@
 export class Dragon {
-  constructor(x, y, size = 30) {
+  constructor(x, y, size = 50) {
     this.x = x;
     this.y = y;
     this.size = size;
@@ -31,8 +31,8 @@ export class Dragon {
     if (this.tail.length > this.maxTail) this.tail.pop();
 
     // Wing flap animation
-    this.wingFlap += 0.3 * this.flapDirection;
-    if (this.wingFlap > 5 || this.wingFlap < -5) this.flapDirection *= -1;
+    this.wingFlap += 0.5 * this.flapDirection; // bigger wing movement
+    if (this.wingFlap > 10 || this.wingFlap < -10) this.flapDirection *= -1;
   }
 
   grow() {
@@ -42,7 +42,7 @@ export class Dragon {
   draw(ctx) {
     // Draw tail
     for (let i = 0; i < this.tail.length; i++) {
-      ctx.fillStyle = `rgba(0,200,0,${1 - i / this.tail.length})`;
+      ctx.fillStyle = `rgba(255,140,0,${1 - i / this.tail.length})`; // orange tail
       ctx.beginPath();
       ctx.ellipse(
         this.tail[i].x + this.size/2,
@@ -60,23 +60,26 @@ export class Dragon {
     ctx.save();
     ctx.translate(this.x + this.size/2, this.y + this.size/2);
     ctx.rotate(this.velocityY * 0.2); // tilt forward/back
-    ctx.fillStyle = '#00ff00';
+    ctx.fillStyle = '#ff6600'; // bright orange
     ctx.beginPath();
     ctx.ellipse(0, 0, this.size/2, this.size/3, 0, 0, Math.PI*2);
     ctx.fill();
 
-    // Draw wings
-    ctx.fillStyle = '#33cc33';
+    // Draw wings (larger)
+    ctx.fillStyle = '#cc3300'; // darker for depth
+
+    // Top wing
     ctx.beginPath();
     ctx.moveTo(-this.size/2, 0);
-    ctx.lineTo(-this.size/2 - 10, -this.wingFlap);
-    ctx.lineTo(-this.size/2, -this.wingFlap*1.5);
+    ctx.lineTo(-this.size/2 - 15, -this.wingFlap - 5);
+    ctx.lineTo(-this.size/2, -this.wingFlap - 10);
     ctx.fill();
 
+    // Bottom wing
     ctx.beginPath();
     ctx.moveTo(-this.size/2, 0);
-    ctx.lineTo(-this.size/2 - 10, this.wingFlap);
-    ctx.lineTo(-this.size/2, this.wingFlap*1.5);
+    ctx.lineTo(-this.size/2 - 15, this.wingFlap + 5);
+    ctx.lineTo(-this.size/2, this.wingFlap + 10);
     ctx.fill();
 
     ctx.restore();
