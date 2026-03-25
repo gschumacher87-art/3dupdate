@@ -1,128 +1,100 @@
+import { Dragon } from './dragon.js';
+import { Collectible } from './collectible.js';
+import { Pipe } from './obstacle.js';
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth * 0.8;
+canvas.height = window.innerHeight * 0.8;
 
-let width = window.innerWidth * 0.8;
-let height = window.innerHeight * 0.8;
-canvas.width = width;
-canvas.height = height;
-
-const gravity = 0.6;
-const flapPower = -10;
 let score = 0;
-
-// Dragon setup
-const dragon = {
-  x: 100,
-  y: height / 2,
-  width: 40,
-  height: 40,
-  velocity: 0,
-  tail: [],
-  maxTail: 5
-};
-
-// Pipes
-const pipes = [];
-const pipeWidth = 60;
-const gapHeight = 150;
-let pipeInterval = 2000;
+let pipes = [];
+let collectibles = [];
 let lastPipeTime = 0;
+let pipeInterval = 2000;
+let gameRunning = false;
 
-// Controls
-function flap() {
-  dragon.velocity = flapPower;
-}
+const dragon = new Dragon(100, canvas.height / 2);
 
-// Desktop
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space' || e.code === 'ArrowUp') flap();
+// Start button
+document.getElementById('startBtn').addEventListener('click', () => {
+  resetGame();
+  gameRunning = true;
 });
 
-// Mobile / buttons
-document.getElementById('up').addEventListener('click', flap);
-document.getElementById('up').addEventListener('touchstart', e => { e.preventDefault(); flap(); });
+// Arrow keys
+document.addEventListener('keydown', e => {
+  switch (e.code) {
+    case 'ArrowUp': dragon.move('up'); break;
+    case 'ArrowDown': dragon.move('down'); break;
+    case 'ArrowLeft': dragon.move('left'); break;
+    case 'ArrowRight': dragon.move('right'); break;
+  }
+});
 
-// Game loop
+// Mobile buttons
+['up','down','left','right'].forEach(dir => {
+  document.getElementById(dir).addEventListener('touchstart', e => { e.preventDefault(); dragon.move(dir); });
+  document.getElementById(dir).addEventListener('click', () => dragon.move(dir));
+});
+
+function resetGame() {
+  score = 0;
+  dragon.x = 100;
+  dragon.y = canvas.height / 2;
+  dragon.tail = [];
+  dragon.maxTail = 5;
+  pipes = [];
+  collectibles = [];
+  lastPipeTime = 0;
+}
+
 function gameLoop(timestamp) {
-  ctx.clearRect(0, 0, width, height);
+  if (!gameRunning) return requestAnimationFrame(gameLoop);
 
-  // Dragon physics
-  dragon.velocity += gravity;
-  dragon.y += dragon.velocity;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Boundaries
-  if (dragon.y < 0) dragon.y = 0;
-  if (dragon.y + dragon.height > height) {
-    dragon.y = height - dragon.height;
-    dragon.velocity = 0;
-  }
+  // Auto forward
+  dragon.move('right');
+  dragon.draw(ctx);
 
-  // Tail
-  dragon.tail.unshift({ x: dragon.x, y: dragon.y });
-  if (dragon.tail.length > dragon.maxTail) dragon.tail.pop();
-
-  // Draw tail
-  for (let i = 0; i < dragon.tail.length; i++) {
-    ctx.fillStyle = `rgba(0,255,0,${1 - i / dragon.tail.length})`;
-    ctx.fillRect(dragon.tail[i].x, dragon.tail[i].y, dragon.width, dragon.height);
-  }
-
-  // Draw dragon
-  ctx.fillStyle = '#00ff00';
-  ctx.fillRect(dragon.x, dragon.y, dragon.width, dragon.height);
-
-  // Pipes generation
+  // Pipes
   if (!lastPipeTime || timestamp - lastPipeTime > pipeInterval) {
-    let topHeight = Math.random() * (height - gapHeight - 100) + 50;
-    pipes.push({ x: width, topHeight });
+    let topHeight = Math.random() * (canvas.height - 150 - 100) + 50;
+    pipes.push(new Pipe(canvas.width, topHeight));
     lastPipeTime = timestamp;
   }
 
-  // Move pipes
   for (let i = pipes.length - 1; i >= 0; i--) {
-    pipes[i].x -= 3;
+    pipes[i].move();
+    pipes[i].draw(ctx, canvas.height);
 
-    // Draw top pipe
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(pipes[i].x, 0, pipeWidth, pipes[i].topHeight);
-    // Draw bottom pipe
-    ctx.fillRect(pipes[i].x, pipes[i].topHeight + gapHeight, pipeWidth, height - pipes[i].topHeight - gapHeight);
-
-    // Collision
-    if (
-      dragon.x + dragon.width > pipes[i].x &&
-      dragon.x < pipes[i].x + pipeWidth &&
-      (dragon.y < pipes[i].topHeight || dragon.y + dragon.height > pipes[i].topHeight + gapHeight)
-    ) {
-      resetGame();
-      return;
+    if (pipes[i].checkCollision(dragon)) {
+      gameRunning = false;
+      alert('Game Over!');
     }
 
-    // Passed pipe
-    if (!pipes[i].scored && dragon.x > pipes[i].x + pipeWidth) {
+    if (!pipes[i].scored && dragon.x > pipes[i].x + pipes[i].width) {
       score++;
-      dragon.maxTail++; // grow tail when passing pipe
+      dragon.grow();
       pipes[i].scored = true;
     }
 
-    // Remove off-screen pipes
-    if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
+    if (pipes[i].x + pipes[i].width < 0) pipes.splice(i,1);
   }
 
-  // Update score
+  // Collectibles (optional)
+  collectibles.forEach(c => {
+    c.draw(ctx);
+    if (c.checkCollision(dragon)) {
+      score++;
+      dragon.grow();
+    }
+  });
+
   document.getElementById('score').textContent = 'Score: ' + score;
 
   requestAnimationFrame(gameLoop);
-}
-
-// Reset
-function resetGame() {
-  score = 0;
-  dragon.y = height / 2;
-  dragon.velocity = 0;
-  dragon.tail = [];
-  dragon.maxTail = 5;
-  pipes.length = 0;
 }
 
 gameLoop();
