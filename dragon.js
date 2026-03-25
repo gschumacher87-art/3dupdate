@@ -7,9 +7,7 @@ export class Dragon {
     this.maxTail = 5;
 
     // Animation
-    this.wingFlap = 0;
-    this.flapDirection = 1;
-    this.velocityY = 0; // for tilt effect
+    this.velocityY = 0; // tilt
   }
 
   move(direction, gridSize = 20) {
@@ -29,10 +27,6 @@ export class Dragon {
     // Add new head to tail
     this.tail.unshift({ x: this.x, y: this.y });
     if (this.tail.length > this.maxTail) this.tail.pop();
-
-    // Wing flap animation
-    this.wingFlap += 0.5 * this.flapDirection; // bigger wing movement
-    if (this.wingFlap > 10 || this.wingFlap < -10) this.flapDirection *= -1;
   }
 
   grow() {
@@ -40,9 +34,11 @@ export class Dragon {
   }
 
   draw(ctx) {
+    const wingFlap = Math.sin(Date.now() / 100) * 15; // smooth flap
+
     // Draw tail
     for (let i = 0; i < this.tail.length; i++) {
-      ctx.fillStyle = `rgba(255,140,0,${1 - i / this.tail.length})`; // orange tail
+      ctx.fillStyle = `rgba(255,140,0,${1 - i / this.tail.length})`; 
       ctx.beginPath();
       ctx.ellipse(
         this.tail[i].x + this.size/2,
@@ -56,30 +52,49 @@ export class Dragon {
       ctx.fill();
     }
 
-    // Draw dragon body
+    // Draw body
     ctx.save();
     ctx.translate(this.x + this.size/2, this.y + this.size/2);
-    ctx.rotate(this.velocityY * 0.2); // tilt forward/back
-    ctx.fillStyle = '#ff6600'; // bright orange
+    ctx.rotate(this.velocityY * 0.2);
+    ctx.fillStyle = '#ff6600';
     ctx.beginPath();
     ctx.ellipse(0, 0, this.size/2, this.size/3, 0, 0, Math.PI*2);
     ctx.fill();
 
-    // Draw wings (larger)
-    ctx.fillStyle = '#cc3300'; // darker for depth
+    // Draw wings
+    ctx.fillStyle = '#cc3300';
 
     // Top wing
     ctx.beginPath();
     ctx.moveTo(-this.size/2, 0);
-    ctx.lineTo(-this.size/2 - 15, -this.wingFlap - 5);
-    ctx.lineTo(-this.size/2, -this.wingFlap - 10);
+    ctx.lineTo(-this.size/2 - 15, -wingFlap - 5);
+    ctx.lineTo(-this.size/2, -wingFlap - 10);
     ctx.fill();
 
     // Bottom wing
     ctx.beginPath();
     ctx.moveTo(-this.size/2, 0);
-    ctx.lineTo(-this.size/2 - 15, this.wingFlap + 5);
-    ctx.lineTo(-this.size/2, this.wingFlap + 10);
+    ctx.lineTo(-this.size/2 - 15, wingFlap + 5);
+    ctx.lineTo(-this.size/2, wingFlap + 10);
+    ctx.fill();
+
+    // Draw eyes
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(this.size/6, -this.size/10, this.size/10, this.size/10, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.ellipse(this.size/6, -this.size/10, this.size/20, this.size/20, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Draw tongue
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.moveTo(this.size/2, 0);
+    ctx.lineTo(this.size/2 + 5, 5);
+    ctx.lineTo(this.size/2, 10);
     ctx.fill();
 
     ctx.restore();
