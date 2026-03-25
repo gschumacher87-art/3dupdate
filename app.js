@@ -1,6 +1,6 @@
 import { Dragon } from './dragon.js';
-import { Collectible } from './collectible.js';
 import { Pipe } from './obstacle.js';
+import { Collectible } from './collectible.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -14,7 +14,13 @@ let lastPipeTime = 0;
 let pipeInterval = 2000;
 let gameRunning = false;
 
-const dragon = new Dragon(100, canvas.height / 2);
+// Grid settings
+const gridSize = 20; // Snake-style grid step
+
+const dragon = new Dragon(5 * gridSize, 5 * gridSize, gridSize, gridSize, gridSize);
+
+// Direction queue to prevent instant reverse
+let nextDirection = 'right';
 
 // Start button
 document.getElementById('startBtn').addEventListener('click', () => {
@@ -22,28 +28,40 @@ document.getElementById('startBtn').addEventListener('click', () => {
   gameRunning = true;
 });
 
-// Arrow keys
+// Keyboard controls
 document.addEventListener('keydown', e => {
   switch (e.code) {
-    case 'ArrowUp': dragon.move('up'); break;
-    case 'ArrowDown': dragon.move('down'); break;
-    case 'ArrowLeft': dragon.move('left'); break;
-    case 'ArrowRight': dragon.move('right'); break;
+    case 'ArrowUp': if (dragon.direction !== 'down') nextDirection = 'up'; break;
+    case 'ArrowDown': if (dragon.direction !== 'up') nextDirection = 'down'; break;
+    case 'ArrowLeft': if (dragon.direction !== 'right') nextDirection = 'left'; break;
+    case 'ArrowRight': if (dragon.direction !== 'left') nextDirection = 'right'; break;
   }
 });
 
-// Mobile buttons
+// On-screen buttons (touch + click)
 ['up','down','left','right'].forEach(dir => {
-  document.getElementById(dir).addEventListener('touchstart', e => { e.preventDefault(); dragon.move(dir); });
-  document.getElementById(dir).addEventListener('click', () => dragon.move(dir));
+  const btn = document.getElementById(dir);
+  btn.addEventListener('click', () => { if (validDirection(dir)) nextDirection = dir; });
+  btn.addEventListener('touchstart', e => { e.preventDefault(); if (validDirection(dir)) nextDirection = dir; });
 });
+
+function validDirection(dir) {
+  return !(
+    (dir === 'up' && dragon.direction === 'down') ||
+    (dir === 'down' && dragon.direction === 'up') ||
+    (dir === 'left' && dragon.direction === 'right') ||
+    (dir === 'right' && dragon.direction === 'left')
+  );
+}
 
 function resetGame() {
   score = 0;
-  dragon.x = 100;
-  dragon.y = canvas.height / 2;
+  dragon.x = 5 * gridSize;
+  dragon.y = 5 * gridSize;
   dragon.tail = [];
   dragon.maxTail = 5;
+  dragon.direction = 'right';
+  nextDirection = 'right';
   pipes = [];
   collectibles = [];
   lastPipeTime = 0;
@@ -54,8 +72,11 @@ function gameLoop(timestamp) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Auto forward
-  dragon.move('right');
+  // Update direction
+  dragon.direction = nextDirection;
+
+  // Move dragon
+  dragon.move(dragon.direction);
   dragon.draw(ctx);
 
   // Pipes
@@ -83,7 +104,7 @@ function gameLoop(timestamp) {
     if (pipes[i].x + pipes[i].width < 0) pipes.splice(i,1);
   }
 
-  // Collectibles (optional)
+  // Collectibles
   collectibles.forEach(c => {
     c.draw(ctx);
     if (c.checkCollision(dragon)) {
