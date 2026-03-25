@@ -4,41 +4,46 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth * 0.8;
 canvas.height = window.innerHeight * 0.8;
 
-// Dragon sprite setup
+// === Load sprite sheet ===
 const dragonSprite = new Image();
-dragonSprite.src = './project-folder/dragon.png'; // sprite sheet with 3 frames
+dragonSprite.src = './project-folder/dragon.png'; // path from index.html
 
-const spriteWidth = 64;   // width of one frame
-const spriteHeight = 64;  // height of one frame
-const scale = 2;          // how big we draw it on canvas
-let frameIndex = 0;
-const totalFrames = 3;    // number of frames
-const frameSpeed = 10;    // higher = slower animation
-let tick = 0;
+const frameWidth = 64;   // width of one dragon frame
+const frameHeight = 64;  // height of one dragon frame
+const totalFrames = 3;   // number of frames in your sprite sheet
+
+let currentFrame = 0;
+let lastFrameTime = 0;
+const frameDuration = 200; // ms per frame
 
 dragonSprite.onload = () => {
-    requestAnimationFrame(gameLoop);
+    console.log('Sprite loaded!');
+    requestAnimationFrame(animate);
 };
 
-function gameLoop() {
+dragonSprite.onerror = () => console.error('Failed to load sprite. Check path!');
+
+function animate(timestamp) {
+    // --- clear canvas ---
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw current frame
-    ctx.drawImage(
-        dragonSprite,
-        frameIndex * spriteWidth, 0,      // source x, y
-        spriteWidth, spriteHeight,        // source width, height
-        canvas.width / 2 - (spriteWidth*scale)/2,  // dest x
-        canvas.height / 2 - (spriteHeight*scale)/2,// dest y
-        spriteWidth * scale,              // dest width
-        spriteHeight * scale              // dest height
-    );
-
-    // Animate frames
-    tick++;
-    if (tick % frameSpeed === 0) {
-        frameIndex = (frameIndex + 1) % totalFrames;
+    // --- update frame ---
+    if (!lastFrameTime) lastFrameTime = timestamp;
+    if (timestamp - lastFrameTime > frameDuration) {
+        currentFrame = (currentFrame + 1) % totalFrames;
+        lastFrameTime = timestamp;
     }
 
-    requestAnimationFrame(gameLoop);
+    // --- draw current frame in center ---
+    const x = canvas.width / 2 - frameWidth / 2;
+    const y = canvas.height / 2 - frameHeight / 2;
+    ctx.drawImage(
+        dragonSprite,
+        currentFrame * frameWidth, 0,  // source x, y
+        frameWidth, frameHeight,       // source width, height
+        x, y,                          // dest x, y
+        frameWidth, frameHeight        // dest width, height
+    );
+
+    requestAnimationFrame(animate);
 }
