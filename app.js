@@ -29,7 +29,7 @@ const dragonSprite = new Image();
 dragonSprite.src = './dragon.png';  // your dragon picture
 dragon.sprite = dragonSprite;        // assign to dragon instance
 
-// Start button
+// --- Start button ---
 document.getElementById('startBtn').addEventListener('click', () => {
   resetGame();
   gameRunning = true;
@@ -138,5 +138,7 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-// Start loop immediately
-gameLoop();
+// --- Start loop only after sprite is loaded ---
+dragonSprite.onload = () => {
+  gameLoop();
+};
