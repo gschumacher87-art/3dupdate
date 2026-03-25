@@ -1,13 +1,20 @@
+// dragon.js
 export class Dragon {
-  constructor(x, y, size = 50) {
+  constructor(x, y, size = 64) { // size matches your sprite
     this.x = x;
     this.y = y;
     this.size = size;
     this.tail = [{ x: x, y: y }];
     this.maxTail = 5;
 
-    // Animation
-    this.velocityY = 0; // tilt
+    this.velocityY = 0; // for tilt
+    this.sprite = null; // assign from app.js
+
+    // Animation for sprite sheet (if multi-frame)
+    this.frameIndex = 0;
+    this.totalFrames = 3; // adjust if your sprite sheet has multiple frames
+    this.frameWidth = 64;
+    this.frameHeight = 64;
   }
 
   move(direction, gridSize = 20) {
@@ -34,69 +41,36 @@ export class Dragon {
   }
 
   draw(ctx) {
-    const wingFlap = Math.sin(Date.now() / 100) * 15; // smooth flap
+    if (!this.sprite) return; // do nothing if sprite not loaded
 
-    // Draw tail
+    // --- Draw tail ---
     for (let i = 0; i < this.tail.length; i++) {
-      ctx.fillStyle = `rgba(255,140,0,${1 - i / this.tail.length})`; 
-      ctx.beginPath();
-      ctx.ellipse(
-        this.tail[i].x + this.size/2,
-        this.tail[i].y + this.size/2,
-        this.size/2,
-        this.size/3,
-        0,
-        0,
-        Math.PI*2
+      ctx.globalAlpha = 1 - i / this.tail.length;
+      ctx.drawImage(
+        this.sprite,
+        0, 0, this.frameWidth, this.frameHeight, // full sprite
+        this.tail[i].x, this.tail[i].y,
+        this.size, this.size
       );
-      ctx.fill();
     }
+    ctx.globalAlpha = 1;
 
-    // Draw body
+    // --- Draw main dragon with tilt ---
     ctx.save();
     ctx.translate(this.x + this.size/2, this.y + this.size/2);
-    ctx.rotate(this.velocityY * 0.2);
-    ctx.fillStyle = '#ff6600';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, this.size/2, this.size/3, 0, 0, Math.PI*2);
-    ctx.fill();
+    ctx.rotate(this.velocityY * 0.2); // tilt
 
-    // Draw wings
-    ctx.fillStyle = '#cc3300';
-
-    // Top wing
-    ctx.beginPath();
-    ctx.moveTo(-this.size/2, 0);
-    ctx.lineTo(-this.size/2 - 15, -wingFlap - 5);
-    ctx.lineTo(-this.size/2, -wingFlap - 10);
-    ctx.fill();
-
-    // Bottom wing
-    ctx.beginPath();
-    ctx.moveTo(-this.size/2, 0);
-    ctx.lineTo(-this.size/2 - 15, wingFlap + 5);
-    ctx.lineTo(-this.size/2, wingFlap + 10);
-    ctx.fill();
-
-    // Draw eyes
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.ellipse(this.size/6, -this.size/10, this.size/10, this.size/10, 0, 0, Math.PI*2);
-    ctx.fill();
-
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.ellipse(this.size/6, -this.size/10, this.size/20, this.size/20, 0, 0, Math.PI*2);
-    ctx.fill();
-
-    // Draw tongue
-    ctx.fillStyle = '#ff0000';
-    ctx.beginPath();
-    ctx.moveTo(this.size/2, 0);
-    ctx.lineTo(this.size/2 + 5, 5);
-    ctx.lineTo(this.size/2, 10);
-    ctx.fill();
+    ctx.drawImage(
+      this.sprite,
+      this.frameIndex * this.frameWidth, 0,
+      this.frameWidth, this.frameHeight,
+      -this.size/2, -this.size/2,
+      this.size, this.size
+    );
 
     ctx.restore();
+
+    // --- Animate sprite frames if multi-frame ---
+    this.frameIndex = (this.frameIndex + 1) % this.totalFrames;
   }
 }
