@@ -1,3 +1,4 @@
+// app.js
 import { Dragon } from './dragon.js';
 import { Collectible } from './collectible.js';
 import { Pipe } from './obstacle.js';
@@ -23,12 +24,15 @@ const minPipeDistance = 250; // minimum horizontal distance between pipes
 let currentDirection = 'right';
 let nextDirection = 'right';
 
+// --- Load dragon sprite ---
+const dragonSprite = new Image();
+dragonSprite.src = './dragon.png';  // your dragon picture
+dragon.sprite = dragonSprite;        // assign to dragon instance
+
 // Start button
 document.getElementById('startBtn').addEventListener('click', () => {
   resetGame();
   gameRunning = true;
-
-  // Hide start button
   document.getElementById('startBtn').style.display = 'none';
 });
 
@@ -56,6 +60,7 @@ function isOpposite(dir1, dir2) {
 function resetGame() {
   score = 0;
   dragon = new Dragon(5 * gridSize, 5 * gridSize);
+  dragon.sprite = dragonSprite; // keep sprite linked
   currentDirection = 'right';
   nextDirection = 'right';
   pipes = [];
@@ -123,7 +128,7 @@ function gameLoop(timestamp) {
   }
 
   // --- Draw everything ---
-  dragon.draw(ctx);
+  dragon.draw(ctx);          // uses your sprite now
   pipes.forEach(p => p.draw(ctx, canvas.height));
   collectibles.forEach(c => c.draw(ctx));
 
