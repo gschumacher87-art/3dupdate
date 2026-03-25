@@ -1,20 +1,21 @@
-// dragon.js
+// project-folder/dragon.js
 export class Dragon {
-  constructor(x, y, size = 64) { // size matches your sprite
+  constructor(x, y, size = 64) {
     this.x = x;
     this.y = y;
     this.size = size;
+
     this.tail = [{ x: x, y: y }];
     this.maxTail = 5;
 
-    this.velocityY = 0; // for tilt
-    this.sprite = null; // assign from app.js
+    this.velocityY = 0; // for tilt effect
+    this.sprite = null;
 
-    // Animation for sprite sheet (if multi-frame)
+    // Sprite animation (multi-frame optional)
     this.frameIndex = 0;
-    this.totalFrames = 3; // adjust if your sprite sheet has multiple frames
-    this.frameWidth = 64;
-    this.frameHeight = 64;
+    this.totalFrames = 1; // change if your sprite sheet has multiple frames
+    this.frameWidth = size;
+    this.frameHeight = size;
   }
 
   move(direction, gridSize = 20) {
@@ -25,13 +26,13 @@ export class Dragon {
       case 'right': this.x += gridSize; break;
     }
 
-    // Keep within canvas bounds
+    // Keep inside canvas bounds
     if (this.x < 0) this.x = 0;
     if (this.y < 0) this.y = 0;
-    if (this.x > window.innerWidth*0.8 - this.size) this.x = window.innerWidth*0.8 - this.size;
-    if (this.y > window.innerHeight*0.8 - this.size) this.y = window.innerHeight*0.8 - this.size;
+    if (this.x > window.innerWidth * 0.8 - this.size) this.x = window.innerWidth * 0.8 - this.size;
+    if (this.y > window.innerHeight * 0.8 - this.size) this.y = window.innerHeight * 0.8 - this.size;
 
-    // Add new head to tail
+    // Update tail
     this.tail.unshift({ x: this.x, y: this.y });
     if (this.tail.length > this.maxTail) this.tail.pop();
   }
@@ -41,36 +42,34 @@ export class Dragon {
   }
 
   draw(ctx) {
-    if (!this.sprite) return; // do nothing if sprite not loaded
+    if (!this.sprite) return;
 
-    // --- Draw tail ---
+    // Draw tail with fading effect
     for (let i = 0; i < this.tail.length; i++) {
       ctx.globalAlpha = 1 - i / this.tail.length;
       ctx.drawImage(
         this.sprite,
-        0, 0, this.frameWidth, this.frameHeight, // full sprite
+        0, 0, this.frameWidth, this.frameHeight,
         this.tail[i].x, this.tail[i].y,
         this.size, this.size
       );
     }
     ctx.globalAlpha = 1;
 
-    // --- Draw main dragon with tilt ---
+    // Draw main dragon with tilt
     ctx.save();
-    ctx.translate(this.x + this.size/2, this.y + this.size/2);
-    ctx.rotate(this.velocityY * 0.2); // tilt
-
+    ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
+    ctx.rotate(this.velocityY * 0.2); // tilt effect
     ctx.drawImage(
       this.sprite,
       this.frameIndex * this.frameWidth, 0,
       this.frameWidth, this.frameHeight,
-      -this.size/2, -this.size/2,
+      -this.size / 2, -this.size / 2,
       this.size, this.size
     );
-
     ctx.restore();
 
-    // --- Animate sprite frames if multi-frame ---
+    // Advance sprite frame if multi-frame
     this.frameIndex = (this.frameIndex + 1) % this.totalFrames;
   }
 }
