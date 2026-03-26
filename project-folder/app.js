@@ -1,67 +1,46 @@
- const canvas = document.getElementById('gameCanvas');
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Resize canvas
-function resizeCanvas() {
-    canvas.width = window.innerWidth * 0.8;
-    canvas.height = window.innerHeight * 0.8;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// Dragon sprite
 const dragon = new Image();
-dragon.src = 'project-folder/dragon.png'; // Make sure path is correct
+dragon.src = 'dragon.png'; // your 3-frame sprite in one row
 
-const FRAME_COUNT = 3;
-let currentFrame = 0;
-const FRAME_DURATION = 150; // ms per frame
+const SPRITE_WIDTH = 64; // width of one frame
+const SPRITE_HEIGHT = 64; // height of one frame
+let frame = 0;
+const totalFrames = 3;
+const FRAME_DELAY = 200; // milliseconds per frame
+
 let lastTime = 0;
 
-let spriteWidth, spriteHeight;
+function animate(time) {
+    if (!lastTime) lastTime = time;
+    const delta = time - lastTime;
 
-// Offsets per frame to prevent jiggle
-let frameOffsets = [];
-
-dragon.onload = () => {
-    spriteWidth = dragon.width / FRAME_COUNT;
-    spriteHeight = dragon.height;
-
-    // Manually set offsets for each frame (adjust these numbers to your sprite)
-    frameOffsets = [
-        { x: canvas.width/2 - spriteWidth/2, y: canvas.height/2 - spriteHeight/2 }, // Frame 0
-        { x: canvas.width/2 - spriteWidth/2, y: canvas.height/2 - spriteHeight/2 }, // Frame 1
-        { x: canvas.width/2 - spriteWidth/2, y: canvas.height/2 - spriteHeight/2 }  // Frame 2
-    ];
-
-    requestAnimationFrame(animate);
-};
-
-function animate(timestamp) {
-    if (!lastTime) lastTime = timestamp;
-    const delta = timestamp - lastTime;
-
-    if (delta > FRAME_DURATION) {
-        currentFrame = (currentFrame + 1) % FRAME_COUNT;
-        lastTime = timestamp;
+    if (delta > FRAME_DELAY) {
+        frame = (frame + 1) % totalFrames;
+        lastTime = time;
     }
 
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw dragon using frame offsets
-    const pos = frameOffsets[currentFrame];
+    // Always draw at same x, y so frames align
+    const x = canvas.width / 2 - SPRITE_WIDTH / 2;
+    const y = canvas.height / 2 - SPRITE_HEIGHT / 2;
+
     ctx.drawImage(
         dragon,
-        currentFrame * spriteWidth, 0,
-        spriteWidth, spriteHeight,
-        pos.x, pos.y,
-        spriteWidth, spriteHeight
+        frame * SPRITE_WIDTH, 0, // source x, y
+        SPRITE_WIDTH, SPRITE_HEIGHT, // source width, height
+        x, y, // destination x, y
+        SPRITE_WIDTH, SPRITE_HEIGHT // destination width, height
     );
 
     requestAnimationFrame(animate);
 }
 
-dragon.onerror = () => {
-    console.error("Failed to load dragon.png. Check path.");
+dragon.onload = () => {
+    requestAnimationFrame(animate);
 };
