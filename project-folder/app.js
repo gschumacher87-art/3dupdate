@@ -1,3 +1,6 @@
+// project-folder/app.js
+import { setupControls } from './controls.js';
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -28,6 +31,9 @@ const dragonObj = {
     gravity: 0.5,
     lift: -10
 };
+
+// Set up controls
+setupControls(dragonObj, canvas);
 
 dragon.onload = function() {
     const spriteWidth = dragon.width / frameCount;
@@ -79,11 +85,3 @@ dragon.onload = function() {
 
     requestAnimationFrame(animate);
 };
-
-// Flap on spacebar / click
-window.addEventListener('keydown', e => {
-    if (e.code === 'Space') dragonObj.velocity = dragonObj.lift;
-});
-canvas.addEventListener('click', () => {
-    dragonObj.velocity = dragonObj.lift;
-});
