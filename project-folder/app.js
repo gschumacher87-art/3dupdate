@@ -11,16 +11,26 @@ resizeCanvas();
 
 // Load dragon PNG sprite (3 frames horizontal)
 const dragon = new Image();
-dragon.src = 'project-folder/dragon.png'; // your real dragon
+dragon.src = 'project-folder/dragon.png'; // your dragon
 
 const frameCount = 3;
 let currentFrame = 0;
+const frameDuration = 200; // ms per frame
+let lastFrameTime = 0;
 
 dragon.onload = function() {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
-    setInterval(() => {
+    function animate(timestamp) {
+        if (!lastFrameTime) lastFrameTime = timestamp;
+        const delta = timestamp - lastFrameTime;
+
+        if (delta >= frameDuration) {
+            currentFrame = (currentFrame + 1) % frameCount;
+            lastFrameTime = timestamp;
+        }
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const scale = Math.min(canvas.width / spriteWidth / 3, canvas.height / spriteHeight / 3);
@@ -37,6 +47,8 @@ dragon.onload = function() {
             drawWidth, drawHeight
         );
 
-        currentFrame = (currentFrame + 1) % frameCount;
-    }, 200);
+        requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
 };
