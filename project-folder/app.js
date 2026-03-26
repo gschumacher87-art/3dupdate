@@ -1,5 +1,6 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+lconst canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'none';
 
@@ -83,7 +84,6 @@ dragon.onload = () => {
 
   size = Math.floor(canvas.width * 0.12);
 
-  // keep scaling consistent
   pipeWidth = Math.floor(canvas.width * 0.08);
   pipeGap = Math.floor(canvas.height * 0.25);
 
@@ -102,6 +102,10 @@ function loop() {
     velocity += gravity;
     y += velocity;
 
+    // 🔒 HARD LOCK (FIXES JITTER)
+    y = Math.round(y);
+    velocity = Math.round(velocity * 1000) / 1000;
+
     pipeTimer++;
     if (pipeTimer >= pipeSpawnEvery) {
       addPipe();
@@ -111,7 +115,6 @@ function loop() {
     for (const p of pipes) {
       p.x -= pipeSpeed;
 
-      // ✅ FIXED HITBOX (smaller than sprite)
       const hitboxScale = 0.7;
       const hitSize = size * hitboxScale;
 
