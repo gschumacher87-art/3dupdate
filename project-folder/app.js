@@ -3,25 +3,32 @@ import { setupControls } from './controls.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Resize canvas dynamically with devicePixelRatio
 function resizeCanvas() {
-    canvas.width = window.innerWidth * 0.8;
-    canvas.height = window.innerHeight * 0.8;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * 0.8 * dpr;
+    canvas.height = window.innerHeight * 0.8 * dpr;
+    canvas.style.width = `${window.innerWidth * 0.8}px`;
+    canvas.style.height = `${window.innerHeight * 0.8}px`;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+    ctx.scale(dpr, dpr);
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+// Dragon sprite
 const dragon = new Image();
 dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
-
 const frameCount = 3;
 let currentFrame = 0;
-let frameDirection = 1;       // ping-pong direction
+let frameDirection = 1;       // ping-pong
 const frameDuration = 250;
 let lastFrameTime = 0;
 
+// Dragon object
 const dragonObj = {
-    x: canvas.width / 4,
-    y: canvas.height / 2,
+    xRatio: 0.25, // relative x-position (1/4 of canvas width)
+    y: 0,
     width: 0,
     height: 0,
     velocity: 0,
@@ -35,16 +42,19 @@ dragon.onload = function () {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
-    const scale = (canvas.width / 5) / spriteWidth;
-    dragonObj.width = spriteWidth * scale;
-    dragonObj.height = spriteHeight * scale;
+    // Function to get scale relative to canvas
+    function getScale() {
+        return (canvas.width / 5) / spriteWidth;
+    }
 
-    // Manual offsets to keep body visually centered
-    const frameOffsets = [
-        { x: -30, y: 0 },   // frame 0
-        { x: -5, y: 0 }, // frame 1 (wings right)
-        { x: 32, y: 0 }    // frame 2 (wings left)
-    ];
+    // Scaled manual offsets for animation frames
+    function getFrameOffsets(scale) {
+        return [
+            { x: -30 * scale, y: 0 },
+            { x: -5 * scale, y: 0 },
+            { x: 32 * scale, y: 0 }
+        ];
+    }
 
     function animate(timestamp) {
         if (!lastFrameTime) lastFrameTime = timestamp;
@@ -52,7 +62,7 @@ dragon.onload = function () {
 
         if (delta >= frameDuration) {
             currentFrame += frameDirection;
-            if (currentFrame === frameCount - 1 || currentFrame === 0) frameDirection *= -1; // reverse ping-pong
+            if (currentFrame === frameCount - 1 || currentFrame === 0) frameDirection *= -1;
             lastFrameTime = timestamp;
         }
 
@@ -69,15 +79,21 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
-        // Round positions
-        const drawX = Math.round(dragonObj.x + frameOffsets[currentFrame].x);
+        // Dynamic scaling & offsets
+        const scale = getScale();
+        dragonObj.width = spriteWidth * scale;
+        dragonObj.height = spriteHeight * scale;
+        const frameOffsets = getFrameOffsets(scale);
+
+        // Draw position relative to canvas
+        const drawX = Math.round(canvas.width * dragonObj.xRatio + frameOffsets[currentFrame].x);
         const drawY = Math.round(dragonObj.y + frameOffsets[currentFrame].y);
 
-        // Black background
+        // Clear background
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon
+        // Draw dragon frame
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
