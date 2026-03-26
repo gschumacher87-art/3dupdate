@@ -16,12 +16,12 @@ let currentFrame = 0;
 const frameDuration = 150;
 let lastFrameTime = 0;
 
-// Dragon fixed size
+// Dragon draw size
 const dragonDrawWidth = 100;
 const dragonDrawHeight = 100;
 
-// Fixed position (no jiggle)
-let dragonX = canvas.width / 8;
+// Fixed position (center)
+let dragonX = canvas.width / 2;
 let dragonY = canvas.height / 2;
 
 let spriteWidth, spriteHeight;
@@ -46,12 +46,12 @@ function animate(timestamp) {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw dragon at fixed position
+    // Draw dragon at fixed position (no offsets needed)
     ctx.drawImage(
         dragon,
         currentFrame * spriteWidth, 0,
         spriteWidth, spriteHeight,
-        dragonX - dragonDrawWidth / 2, // center align
+        dragonX - dragonDrawWidth / 2,
         dragonY - dragonDrawHeight / 2,
         dragonDrawWidth,
         dragonDrawHeight
