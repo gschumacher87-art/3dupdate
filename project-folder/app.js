@@ -1,4 +1,3 @@
-// project-folder/app.js
 import { setupControls } from './controls.js';
 
 const canvas = document.getElementById('gameCanvas');
@@ -16,6 +15,7 @@ dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/
 
 const frameCount = 3;
 let currentFrame = 0;
+let frameDirection = 1;       // ping-pong direction
 const frameDuration = 150;
 let lastFrameTime = 0;
 
@@ -39,18 +39,20 @@ dragon.onload = function () {
     dragonObj.width = spriteWidth * scale;
     dragonObj.height = spriteHeight * scale;
 
-    // Per-frame offsets to stabilize body
+    // Manual offsets to keep body visually centered
     const frameOffsets = [
-        { x: 5, y: 0 },   // frame 0
-        { x: -10, y: 0 },  // frame 1
-        { x: 10, y: 0 }    // frame 2
+        { x: 0, y: 0 },   // frame 0
+        { x: -12, y: 0 }, // frame 1 (wings right)
+        { x: 8, y: 0 }    // frame 2 (wings left)
     ];
 
     function animate(timestamp) {
         if (!lastFrameTime) lastFrameTime = timestamp;
         const delta = timestamp - lastFrameTime;
+
         if (delta >= frameDuration) {
-            currentFrame = (currentFrame + 1) % frameCount;
+            currentFrame += frameDirection;
+            if (currentFrame === frameCount - 1 || currentFrame === 0) frameDirection *= -1; // reverse ping-pong
             lastFrameTime = timestamp;
         }
 
@@ -75,6 +77,7 @@ dragon.onload = function () {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Draw dragon
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
