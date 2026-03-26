@@ -2,16 +2,15 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 // ======================
-// CANVAS SETUP
+// CANVAS (ALL DEVICES)
 // ======================
-let x = 0;
-let y = 0;
+let x, y;
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Flappy Bird position (center anchored)
+    // Flappy Bird position
     x = canvas.width * 0.2;
     y = canvas.height * 0.45;
 }
@@ -19,13 +18,13 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 // ======================
-// LOAD IMAGE
+// LOAD SPRITE
 // ======================
 const dragon = new Image();
-dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
+dragon.src = './dragon.png'; // MUST be inside project-folder
 
 // ======================
-// SPRITE SETTINGS
+// SPRITE (MATCHES IMAGE)
 // ======================
 const totalFrames = 3;
 let frame = 0;
@@ -43,7 +42,7 @@ function loop() {
 
     const size = canvas.width * 0.12;
 
-    // CENTER-LOCKED DRAW (key fix)
+    // PERFECT CENTER LOCK (NO JIGGLE)
     ctx.drawImage(
         dragon,
         frame * frameWidth, 0,
@@ -54,7 +53,7 @@ function loop() {
         size
     );
 
-    // STABLE FRAME TIMING
+    // FLAP CONTROL
     tick++;
     if (tick >= flapSpeed) {
         frame = (frame + 1) % totalFrames;
