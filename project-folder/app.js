@@ -1,8 +1,7 @@
-// project-folder/app.js
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Resize canvas to 80% of window
+// Full window canvas
 function resizeCanvas() {
     canvas.width = window.innerWidth * 0.8;
     canvas.height = window.innerHeight * 0.8;
@@ -12,25 +11,22 @@ resizeCanvas();
 
 // Load dragon sprite (3 frames horizontal)
 const dragon = new Image();
-dragon.src = 'project-folder/dragon.png'; // relative to index.html
+dragon.src = 'project-folder/dragon.png'; // your sprite
 
 const frameCount = 3;
 let currentFrame = 0;
-const frameDuration = 200; // ms per frame
+const frameDuration = 150; // faster flap for Flappy style
 let lastFrameTime = 0;
 
-let spriteWidth, spriteHeight;
-// Dragon position (will stay centered)
-let dragonX, dragonY;
+// Dragon size (small for Flappy Bird style)
+const dragonWidth = 50;
+const dragonHeight = 50;
+
+// Dragon position
+let dragonX = canvas.width / 4; // start a bit left
+let dragonY = canvas.height / 2;
 
 dragon.onload = function() {
-    spriteWidth = dragon.width / frameCount;
-    spriteHeight = dragon.height;
-
-    // Center the dragon
-    dragonX = (canvas.width - spriteWidth) / 2;
-    dragonY = (canvas.height - spriteHeight) / 2;
-
     requestAnimationFrame(animate);
 };
 
@@ -44,16 +40,20 @@ function animate(timestamp) {
         lastFrameTime = timestamp;
     }
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear canvas (black background)
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw dragon at fixed position
+    // Draw dragon small and in place
+    const spriteWidth = dragon.width / frameCount;
+    const spriteHeight = dragon.height;
+
     ctx.drawImage(
         dragon,
-        currentFrame * spriteWidth, 0, // source x, y
-        spriteWidth, spriteHeight,     // source width/height
-        dragonX, dragonY,              // destination x, y
-        spriteWidth, spriteHeight      // draw width/height
+        currentFrame * spriteWidth, 0,
+        spriteWidth, spriteHeight,
+        dragonX, dragonY,
+        dragonWidth, dragonHeight
     );
 
     requestAnimationFrame(animate);
