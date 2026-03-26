@@ -41,10 +41,12 @@ dragon.onload = function () {
 
     // Per-frame offsets to stabilize body
     const frameOffsets = [
-        { x: 0, y: 0 },   // frame 0
-        { x: -10, y: 0 },  // frame 1
-        { x: -30, y: 0 }    // frame 2
-    ];
+        
+        const frameOffsets = [
+    { x: 0, y: 0 },   // frame 0
+    { x: -6, y: 0 },  // frame 1
+    { x: 4, y: 0 }    // frame 2
+];
 
     function animate(timestamp) {
         if (!lastFrameTime) lastFrameTime = timestamp;
