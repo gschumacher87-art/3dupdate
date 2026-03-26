@@ -1,46 +1,47 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// FULL DEVICE SAFE SIZE (no weird scaling)
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
+// LOAD SPRITE
 const dragon = new Image();
-dragon.src = 'dragon.png'; // your 3-frame sprite in one row
+dragon.src = './dragon.png';
 
-const SPRITE_WIDTH = 64; // width of one frame
-const SPRITE_HEIGHT = 64; // height of one frame
-let frame = 0;
+// SPRITE SETTINGS
+const frameWidth = 256;   // EXACT frame width
+const frameHeight = 256;  // EXACT frame height
 const totalFrames = 3;
-const FRAME_DELAY = 200; // milliseconds per frame
 
-let lastTime = 0;
+let frame = 0;
 
-function animate(time) {
-    if (!lastTime) lastTime = time;
-    const delta = time - lastTime;
+// FIXED POSITION (NO JIGGLE)
+const x = 100;
+const y = canvas.height / 2;
 
-    if (delta > FRAME_DELAY) {
-        frame = (frame + 1) % totalFrames;
-        lastTime = time;
-    }
-
+// ANIMATION LOOP
+function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Always draw at same x, y so frames align
-    const x = canvas.width / 2 - SPRITE_WIDTH / 2;
-    const y = canvas.height / 2 - SPRITE_HEIGHT / 2;
 
     ctx.drawImage(
         dragon,
-        frame * SPRITE_WIDTH, 0, // source x, y
-        SPRITE_WIDTH, SPRITE_HEIGHT, // source width, height
-        x, y, // destination x, y
-        SPRITE_WIDTH, SPRITE_HEIGHT // destination width, height
+        frame * frameWidth, 0,     // crop X, Y
+        frameWidth, frameHeight,   // crop size
+        x, y,                      // draw position (FIXED)
+        frameWidth, frameHeight    // draw size
     );
 
-    requestAnimationFrame(animate);
+    frame = (frame + 1) % totalFrames;
+
+    setTimeout(() => requestAnimationFrame(animate), 120);
 }
 
+// START AFTER LOAD
 dragon.onload = () => {
-    requestAnimationFrame(animate);
+    animate();
 };
