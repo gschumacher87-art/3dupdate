@@ -42,7 +42,7 @@ dragon.onload = function () {
     // Per-frame offsets to stabilize body
     const frameOffsets = [
         { x: 5, y: 0 },   // frame 0
-        { x: -10 y: 0 },  // frame 1
+        { x: -10, y: 0 },  // frame 1
         { x: 10, y: 0 }    // frame 2
     ];
 
