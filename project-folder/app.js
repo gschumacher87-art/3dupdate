@@ -31,7 +31,9 @@ dragon.onload = function() {
             lastFrameTime = timestamp;
         }
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Fill background black
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         const scale = Math.min(canvas.width / spriteWidth / 3, canvas.height / spriteHeight / 3);
         const drawWidth = spriteWidth * scale;
