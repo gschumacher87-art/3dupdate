@@ -76,8 +76,8 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
-        // Clear background
-        ctx.fillStyle = 'skyblue';
+        // Black background
+        ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw dragon
