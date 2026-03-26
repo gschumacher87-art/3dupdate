@@ -8,8 +8,9 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+// Use the new perfectly centered dragon sprite
 const dragon = new Image();
-dragon.src = 'project-folder/dragon.png';
+dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon_centered.png';
 
 const frameCount = 3;
 let currentFrame = 0;
@@ -46,7 +47,7 @@ function animate(timestamp) {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw dragon at fixed position (no offsets needed)
+    // Draw dragon at fixed position (no jiggle)
     ctx.drawImage(
         dragon,
         currentFrame * spriteWidth, 0,
@@ -61,5 +62,5 @@ function animate(timestamp) {
 }
 
 dragon.onerror = function() {
-    console.error("Failed to load dragon.png. Check path.");
+    console.error("Failed to load dragon_centered.png. Check path.");
 };
