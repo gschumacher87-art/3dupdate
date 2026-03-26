@@ -22,8 +22,8 @@ const dragonDrawHeight = 100;
 
 // Center-ish starting positions (Flappy Bird style)
 const frameOffsets = [
-    { x: canvas.width / 0, y: canvas.height / 2 }, // Frame 0
-    { x: canvas.width / 2, y: canvas.height / 2 }, // Frame 1
+    { x: canvas.width / 4, y: canvas.height / 2 }, // Frame 0
+    { x: canvas.width / 8, y: canvas.height / 2 }, // Frame 1
     { x: canvas.width / 6, y: canvas.height / 2 }  // Frame 2
 ];
 
