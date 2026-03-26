@@ -3,19 +3,18 @@ import { setupControls } from './controls.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Track logical (game) size
-let gameWidth;
-let gameHeight;
+let gameWidth = window.innerWidth * 0.8;
+let gameHeight = window.innerHeight * 0.8;
 
-function resizeCanvas() {
+canvas.width = gameWidth;
+canvas.height = gameHeight;
+
+window.addEventListener('resize', () => {
     gameWidth = window.innerWidth * 0.8;
     gameHeight = window.innerHeight * 0.8;
-
     canvas.width = gameWidth;
     canvas.height = gameHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+});
 
 // Dragon sprite
 const dragon = new Image();
@@ -23,16 +22,12 @@ dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/
 
 const frameCount = 3;
 let currentFrame = 0;
-let frameDirection = 1;
 const frameDuration = 250;
 let lastFrameTime = 0;
 
-// Optional per-frame X offsets to stabilize jumpy sprite
-const frameOffsets = [0, -5, 5]; // tweak these numbers until the dragon stays in place
-
 // Dragon object
 const dragonObj = {
-    xRatio: 0.25, // stable horizontal position
+    xRatio: 0.25,
     y: 0,
     width: 0,
     height: 0,
@@ -43,32 +38,22 @@ const dragonObj = {
 
 setupControls(dragonObj, canvas);
 
-dragon.onload = function () {
+dragon.onload = () => {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
-    function updateSize() {
-        const scale = (gameWidth / 5) / spriteWidth;
-        dragonObj.width = spriteWidth * scale;
-        dragonObj.height = spriteHeight * scale;
-    }
+    const scale = (gameWidth / 5) / spriteWidth;
+    dragonObj.width = spriteWidth * scale;
+    dragonObj.height = spriteHeight * scale;
 
     function animate(timestamp) {
         if (!lastFrameTime) lastFrameTime = timestamp;
         const delta = timestamp - lastFrameTime;
 
         if (delta >= frameDuration) {
-            currentFrame += frameDirection;
-            if (currentFrame === frameCount - 1 || currentFrame === 0) {
-                frameDirection *= -1;
-            }
+            currentFrame = (currentFrame + 1) % frameCount; // simple looping
             lastFrameTime = timestamp;
         }
-
-        updateSize();
-
-        // Stable X position
-        const baseX = gameWidth * dragonObj.xRatio;
 
         // Physics
         dragonObj.velocity += dragonObj.gravity;
@@ -78,31 +63,25 @@ dragon.onload = function () {
             dragonObj.y = gameHeight - dragonObj.height;
             dragonObj.velocity = 0;
         }
-
         if (dragonObj.y < 0) {
             dragonObj.y = 0;
             dragonObj.velocity = 0;
         }
 
-        // Draw position with frame offset
-        const drawX = Math.round(baseX - dragonObj.width / 2 + frameOffsets[currentFrame]);
-        const drawY = Math.round(dragonObj.y);
-
         // Clear canvas
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, gameWidth, gameHeight);
 
-        // Draw sprite
+        // Draw sprite centered at X
+        const drawX = Math.round(gameWidth * dragonObj.xRatio - dragonObj.width / 2);
+        const drawY = Math.round(dragonObj.y);
+
         ctx.drawImage(
             dragon,
-            currentFrame * spriteWidth,
-            0,
-            spriteWidth,
-            spriteHeight,
-            drawX,
-            drawY,
-            dragonObj.width,
-            dragonObj.height
+            currentFrame * spriteWidth, 0,
+            spriteWidth, spriteHeight,
+            drawX, drawY,
+            dragonObj.width, dragonObj.height
         );
 
         requestAnimationFrame(animate);
