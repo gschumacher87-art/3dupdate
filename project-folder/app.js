@@ -43,7 +43,7 @@ dragon.onload = function () {
     const frameOffsets = [
         { x: 0, y: 0 },   // frame 0
         { x: -12, y: 0 }, // frame 1 (wings right)
-        { x: 8, y: 0 }    // frame 2 (wings left)
+        { x: 0, y: 0 }    // frame 2 (wings left)
     ];
 
     function animate(timestamp) {
