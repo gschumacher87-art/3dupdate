@@ -16,10 +16,10 @@ resizeCanvas();
 const dragon = new Image();
 dragon.src = 'project-folder/dragon.png';
 
-const frameCount = 3;
+const frameCount = 3;        // number of frames in sprite
 let currentFrame = 0;
-let frameDirection = 1; // ping-pong direction
-const frameDuration = 200; // ms per frame
+let frameDirection = 1;       // ping-pong animation direction
+const frameDuration = 150;    // ms per frame
 let lastFrameTime = 0;
 
 // Dragon physics
@@ -33,42 +33,36 @@ const dragonObj = {
     lift: -10
 };
 
-// Controls
+// Setup controls
 setupControls(dragonObj, canvas);
 
 dragon.onload = function () {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
-    const scale = Math.min(
-        canvas.width / spriteWidth / 3,
-        canvas.height / spriteHeight / 3
-    );
-
+    // Scale dragon to roughly 1/5 canvas width
+    const scale = (canvas.width / 5) / spriteWidth;
     dragonObj.width = spriteWidth * scale;
     dragonObj.height = spriteHeight * scale;
 
-    // 🔥 Per-frame offsets to keep sprite visually stationary
-    const frameOffsetX = [-4, 0, 4]; // tweak for perfect alignment
+    // Optional per-frame offsets for visual alignment
+    const frameOffsetX = [-5, 0, 5];
 
     function updateFrame() {
         currentFrame += frameDirection;
-
-        if (currentFrame === frameCount - 1 || currentFrame === 0) {
-            frameDirection *= -1; // reverse ping-pong
-        }
+        if (currentFrame >= frameCount - 1 || currentFrame <= 0) frameDirection *= -1;
     }
 
     function animate(timestamp) {
+        // Handle frame timing
         if (!lastFrameTime) lastFrameTime = timestamp;
         const delta = timestamp - lastFrameTime;
-
         if (delta >= frameDuration) {
             updateFrame();
             lastFrameTime = timestamp;
         }
 
-        // Physics
+        // Physics: gravity
         dragonObj.velocity += dragonObj.gravity;
         dragonObj.y += dragonObj.velocity;
 
@@ -82,11 +76,11 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
-        // Background
-        ctx.fillStyle = 'black';
+        // Clear background
+        ctx.fillStyle = 'skyblue';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon (stationary with offsets)
+        // Draw dragon
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
