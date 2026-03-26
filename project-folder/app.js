@@ -3,14 +3,11 @@ import { setupControls } from './controls.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Track logical (game) size
-let gameWidth;
-let gameHeight;
+let gameWidth, gameHeight;
 
 function resizeCanvas() {
     gameWidth = window.innerWidth * 0.8;
     gameHeight = window.innerHeight * 0.8;
-
     canvas.width = gameWidth;
     canvas.height = gameHeight;
 }
@@ -39,40 +36,37 @@ const dragonObj = {
 
 setupControls(dragonObj, canvas);
 
-dragon.onload = function () {
+dragon.onload = () => {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
-    function updateSize() {
-        const scale = (gameWidth / 5) / spriteWidth;
-        dragonObj.width = spriteWidth * scale;
-        dragonObj.height = spriteHeight * scale;
-    }
+    const scale = (gameWidth / 5) / spriteWidth;
+    dragonObj.width = spriteWidth * scale;
+    dragonObj.height = spriteHeight * scale;
+
+    dragonObj.y = gameHeight / 2 - dragonObj.height / 2; // start center vertically
 
     function animate(timestamp) {
         if (!lastFrameTime) lastFrameTime = timestamp;
         const delta = timestamp - lastFrameTime;
 
         if (delta >= frameDuration) {
-            currentFrame = (currentFrame + 1) % frameCount; // only change frame index
+            currentFrame = (currentFrame + 1) % frameCount;
             lastFrameTime = timestamp;
         }
 
-        updateSize();
-
-        // Stable X position (centered horizontally)
+        // Stable horizontal position
         const drawX = Math.round(gameWidth * dragonObj.xRatio - dragonObj.width / 2);
 
         // Physics
         dragonObj.velocity += dragonObj.gravity;
         dragonObj.y += dragonObj.velocity;
 
-        // Floor and ceiling
+        // Keep on screen
         if (dragonObj.y + dragonObj.height > gameHeight) {
             dragonObj.y = gameHeight - dragonObj.height;
             dragonObj.velocity = 0;
         }
-
         if (dragonObj.y < 0) {
             dragonObj.y = 0;
             dragonObj.velocity = 0;
