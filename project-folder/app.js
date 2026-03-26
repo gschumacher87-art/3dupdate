@@ -19,24 +19,29 @@ let frame = 0;
 let tick = 0;
 const speed = 6;
 
+// ===== PRE-CALC (locks everything) =====
+let fw, fh, size, x, y;
+
+dragon.onload = () => {
+  fw = Math.floor(dragon.width / frames);
+  fh = Math.floor(dragon.height);
+
+  size = Math.floor(canvas.width * 0.12);
+
+  x = Math.floor(canvas.width * 0.2);
+  y = Math.floor(canvas.height * 0.45);
+
+  requestAnimationFrame(loop);
+};
+
 // ===== LOOP =====
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const fw = dragon.width / frames;
-  const fh = dragon.height;
-
-  // 👇 FIX: use INTEGER size (prevents subpixel jitter)
-  const size = Math.floor(canvas.width * 0.12);
-
-  // 👇 FIX: lock to whole pixels
-  const x = Math.floor(canvas.width * 0.2);
-  const y = Math.floor(canvas.height * 0.45);
-
   ctx.drawImage(
     dragon,
-    Math.floor(frame * fw), 0,
-    Math.floor(fw), Math.floor(fh),
+    frame * fw, 0,
+    fw, fh,
     x - size / 2,
     y - size / 2,
     size,
@@ -51,8 +56,3 @@ function loop() {
 
   requestAnimationFrame(loop);
 }
-
-// ===== START =====
-dragon.onload = () => {
-  loop();
-};
