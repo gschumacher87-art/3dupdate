@@ -1,5 +1,5 @@
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d'); // ✅ iOS safe
+const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'none';
@@ -41,6 +41,10 @@ let pipeTimer = 0;
 
 // ===== PRE-CALC =====
 let fw, fh, size, x, y;
+
+// 🔒 FORCE CENTER LOCK (KEY FIX)
+let offsetX = 0;
+let offsetY = 0;
 
 function flap() {
   if (gameOver) {
@@ -90,6 +94,10 @@ dragon.onload = () => {
   x = Math.floor(canvas.width * 0.2);
   y = Math.floor(canvas.height * 0.45);
 
+  // 🔒 LOCK SPRITE CENTER (prevents frame wobble)
+  offsetX = Math.floor((fw - fw) / 2);
+  offsetY = Math.floor((fh - fh) / 2);
+
   requestAnimationFrame(loop);
 };
 
@@ -102,7 +110,7 @@ function loop() {
     velocity += gravity;
     y += velocity;
 
-    // ✅ HARD LOCK (NO JITTER)
+    // 🔒 HARD LOCK
     y = Math.round(y);
     velocity = Math.round(velocity * 1000) / 1000;
 
@@ -138,9 +146,7 @@ function loop() {
         dragonLeft < pipeRight &&
         (dragonTop < topPipeBottom || dragonBottom > bottomPipeTop);
 
-      if (hitPipe) {
-        gameOver = true;
-      }
+      if (hitPipe) gameOver = true;
     }
 
     while (pipes.length && pipes[0].x + pipeWidth < 0) {
@@ -170,7 +176,7 @@ function loop() {
     );
   }
 
-  // ===== DRAW DRAGON =====
+  // 🔒 DRAW WITH LOCKED CENTER
   const drawX = Math.round(x - size / 2);
   const drawY = Math.round(y - size / 2);
 
@@ -178,7 +184,8 @@ function loop() {
     dragon,
     frame * fw, 0,
     fw, fh,
-    drawX, drawY,
+    drawX + offsetX,
+    drawY + offsetY,
     size, size
   );
 
@@ -188,7 +195,6 @@ function loop() {
   ctx.fillText(`Score: ${score}`, 20, 40);
 
   if (gameOver) {
-    ctx.fillStyle = 'white';
     ctx.font = '28px Arial';
     ctx.fillText('Game Over - tap to restart', 20, 80);
   }
