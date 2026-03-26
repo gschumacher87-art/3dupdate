@@ -1,28 +1,22 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Full window canvas
-function resizeCanvas() {
-    canvas.width = window.innerWidth * 0.8;
-    canvas.height = window.innerHeight * 0.8;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+canvas.width = 800;  // fixed size for now
+canvas.height = 600;
 
-// Load dragon sprite (3 frames horizontally)
 const dragon = new Image();
 dragon.src = 'project-folder/dragon.png'; // make sure this path is correct
 
 const frameCount = 3;
 let currentFrame = 0;
-const frameDuration = 200; // ms per frame
+const frameDuration = 200;
 let lastFrameTime = 0;
 
-// Fixed dragon position
-let dragonX = 300; // adjust X
-let dragonY = 200; // adjust Y
-let dragonScale = 1.5;
+// Fixed position
+let dragonX = 300;
+let dragonY = 200;
 
+// Draw when loaded
 dragon.onload = function() {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
@@ -39,14 +33,13 @@ dragon.onload = function() {
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon at fixed position
+        // Draw dragon at fixed position (flapping only)
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth, 0,  // source x, y
             spriteWidth, spriteHeight,      // source width/height
-            dragonX, dragonY,               // canvas position
-            spriteWidth * dragonScale,      // draw width
-            spriteHeight * dragonScale      // draw height
+            dragonX, dragonY,               // destination x, y
+            spriteWidth, spriteHeight       // draw at natural size
         );
 
         requestAnimationFrame(animate);
