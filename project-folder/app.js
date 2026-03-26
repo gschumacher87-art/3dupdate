@@ -67,19 +67,23 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
+        // Round position to avoid sub-pixel jitter
+        const drawX = Math.round(dragonObj.x);
+        const drawY = Math.round(dragonObj.y);
+
         // Black background
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon at fixed X; each frame overlaps previous
+        // Draw dragon at integer positions
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
             0,
             spriteWidth,
             spriteHeight,
-            dragonObj.x,
-            dragonObj.y,
+            drawX,
+            drawY,
             dragonObj.width,
             dragonObj.height
         );
