@@ -1,6 +1,7 @@
-const canvas = document.getElementById('gameCanvas');
+ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Resize canvas to window
 function resizeCanvas() {
     canvas.width = window.innerWidth * 0.8;
     canvas.height = window.innerHeight * 0.8;
@@ -8,59 +9,55 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Use the new perfectly centered dragon sprite
+// Dragon sprite
 const dragon = new Image();
-dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon_centered.png';
+dragon.src = 'project-folder/dragon.png'; // ensure path is correct
 
-const frameCount = 3;
+const FRAME_COUNT = 3;
 let currentFrame = 0;
-const frameDuration = 150;
-let lastFrameTime = 0;
-
-// Dragon draw size
-const dragonDrawWidth = 100;
-const dragonDrawHeight = 100;
-
-// Fixed position (center)
-let dragonX = canvas.width / 2;
-let dragonY = canvas.height / 2;
+const FRAME_DURATION = 150; // ms per frame
+let lastTime = 0;
 
 let spriteWidth, spriteHeight;
 
-dragon.onload = function() {
-    spriteWidth = dragon.width / frameCount;
+// Center position
+let dragonX, dragonY;
+
+dragon.onload = () => {
+    spriteWidth = dragon.width / FRAME_COUNT;
     spriteHeight = dragon.height;
+
+    // center dragon
+    dragonX = (canvas.width - spriteWidth) / 2;
+    dragonY = (canvas.height - spriteHeight) / 2;
 
     requestAnimationFrame(animate);
 };
 
 function animate(timestamp) {
-    if (!lastFrameTime) lastFrameTime = timestamp;
-    const delta = timestamp - lastFrameTime;
+    if (!lastTime) lastTime = timestamp;
+    const delta = timestamp - lastTime;
 
-    if (delta >= frameDuration) {
-        currentFrame = (currentFrame + 1) % frameCount;
-        lastFrameTime = timestamp;
+    if (delta > FRAME_DURATION) {
+        currentFrame = (currentFrame + 1) % FRAME_COUNT;
+        lastTime = timestamp;
     }
 
-    // Black background
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw dragon at fixed position (no jiggle)
+    // Draw current frame at center
     ctx.drawImage(
         dragon,
         currentFrame * spriteWidth, 0,
         spriteWidth, spriteHeight,
-        dragonX - dragonDrawWidth / 2,
-        dragonY - dragonDrawHeight / 2,
-        dragonDrawWidth,
-        dragonDrawHeight
+        dragonX, dragonY,
+        spriteWidth, spriteHeight
     );
 
     requestAnimationFrame(animate);
 }
 
-dragon.onerror = function() {
-    console.error("Failed to load dragon_centered.png. Check path.");
+dragon.onerror = () => {
+    console.error("Failed to load dragon.png. Check path.");
 };
