@@ -44,12 +44,20 @@ dragon.onload = function () {
     dragonObj.width = spriteWidth * scale;
     dragonObj.height = spriteHeight * scale;
 
+    // Per-frame offsets to keep dragon visually centered
+    // Tweak these numbers to remove any horizontal/vertical jiggle
+    const frameOffsets = [
+        { x: 0, y: 0 },   // frame 0
+        { x: -2, y: 0 },  // frame 1
+        { x: 1, y: 0 }    // frame 2
+    ];
+
     function animate(timestamp) {
-        // Handle frame timing
+        // Advance frame timing
         if (!lastFrameTime) lastFrameTime = timestamp;
         const delta = timestamp - lastFrameTime;
         if (delta >= frameDuration) {
-            currentFrame = (currentFrame + 1) % frameCount; // loop frames
+            currentFrame = (currentFrame + 1) % frameCount;
             lastFrameTime = timestamp;
         }
 
@@ -67,23 +75,19 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
-        // Round position to avoid sub-pixel jitter
-        const drawX = Math.round(dragonObj.x);
-        const drawY = Math.round(dragonObj.y);
-
         // Black background
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon at integer positions
+        // Draw dragon with per-frame offsets and rounded positions
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
             0,
             spriteWidth,
             spriteHeight,
-            drawX,
-            drawY,
+            Math.round(dragonObj.x + frameOffsets[currentFrame].x),
+            Math.round(dragonObj.y + frameOffsets[currentFrame].y),
             dragonObj.width,
             dragonObj.height
         );
