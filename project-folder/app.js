@@ -13,7 +13,7 @@ dragon.src = 'project-folder/dragon.png';
 
 const frameCount = 3;
 let currentFrame = 0;
-const frameDuration = 150;
+const frameDuration = 2500;
 let lastFrameTime = 0;
 
 // Dragon fixed size
