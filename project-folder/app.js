@@ -22,6 +22,10 @@ dragon.onload = function() {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
+    // Precompute offsets to keep dragon stationary
+    // Here we assume wingspan varies a little per frame
+    const offsets = [0, 0, 0]; // tweak if needed, e.g. [0, 5, -3]
+
     function animate(timestamp) {
         if (!lastFrameTime) lastFrameTime = timestamp;
         const delta = timestamp - lastFrameTime;
@@ -31,15 +35,19 @@ dragon.onload = function() {
             lastFrameTime = timestamp;
         }
 
-        // Fill background black
+        // Black background
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         const scale = Math.min(canvas.width / spriteWidth / 3, canvas.height / spriteHeight / 3);
         const drawWidth = spriteWidth * scale;
         const drawHeight = spriteHeight * scale;
-        const x = (canvas.width - drawWidth) / 2;
-        const y = (canvas.height - drawHeight) / 2;
+
+        // Stationary center
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const x = centerX - drawWidth / 2 + offsets[currentFrame];
+        const y = centerY - drawHeight / 2;
 
         ctx.drawImage(
             dragon,
