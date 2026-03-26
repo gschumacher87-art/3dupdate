@@ -1,50 +1,26 @@
-import { setupControls } from './controls.js';
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let gameWidth, gameHeight;
-
+// Full window canvas
 function resizeCanvas() {
-    gameWidth = window.innerWidth * 0.8;
-    gameHeight = window.innerHeight * 0.8;
-    canvas.width = gameWidth;
-    canvas.height = gameHeight;
+    canvas.width = window.innerWidth * 0.8;
+    canvas.height = window.innerHeight * 0.8;
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Dragon sprite
+// Load dragon PNG sprite (3 frames horizontal)
 const dragon = new Image();
-dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
+dragon.src = 'project-folder/dragon.png'; // your dragon
 
 const frameCount = 3;
 let currentFrame = 0;
-const frameDuration = 250;
+const frameDuration = 200; // ms per frame
 let lastFrameTime = 0;
 
-// Dragon object
-const dragonObj = {
-    xRatio: 0.25, // stable horizontal position
-    y: 0,
-    width: 0,
-    height: 0,
-    velocity: 0,
-    gravity: 0.5,
-    lift: -10
-};
-
-setupControls(dragonObj, canvas);
-
-dragon.onload = () => {
+dragon.onload = function() {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
-
-    const scale = (gameWidth / 5) / spriteWidth;
-    dragonObj.width = spriteWidth * scale;
-    dragonObj.height = spriteHeight * scale;
-
-    dragonObj.y = gameHeight / 2 - dragonObj.height / 2; // start center vertically
 
     function animate(timestamp) {
         if (!lastFrameTime) lastFrameTime = timestamp;
@@ -55,40 +31,22 @@ dragon.onload = () => {
             lastFrameTime = timestamp;
         }
 
-        // Stable horizontal position
-        const drawX = Math.round(gameWidth * dragonObj.xRatio - dragonObj.width / 2);
-
-        // Physics
-        dragonObj.velocity += dragonObj.gravity;
-        dragonObj.y += dragonObj.velocity;
-
-        // Keep on screen
-        if (dragonObj.y + dragonObj.height > gameHeight) {
-            dragonObj.y = gameHeight - dragonObj.height;
-            dragonObj.velocity = 0;
-        }
-        if (dragonObj.y < 0) {
-            dragonObj.y = 0;
-            dragonObj.velocity = 0;
-        }
-
-        const drawY = Math.round(dragonObj.y);
-
-        // Clear canvas
+        // Fill background black
         ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, gameWidth, gameHeight);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw sprite
+        const scale = Math.min(canvas.width / spriteWidth / 3, canvas.height / spriteHeight / 3);
+        const drawWidth = spriteWidth * scale;
+        const drawHeight = spriteHeight * scale;
+        const x = (canvas.width - drawWidth) / 2;
+        const y = (canvas.height - drawHeight) / 2;
+
         ctx.drawImage(
             dragon,
-            currentFrame * spriteWidth,
-            0,
-            spriteWidth,
-            spriteHeight,
-            drawX,
-            drawY,
-            dragonObj.width,
-            dragonObj.height
+            currentFrame * spriteWidth, 0,
+            spriteWidth, spriteHeight,
+            x, y,
+            drawWidth, drawHeight
         );
 
         requestAnimationFrame(animate);
