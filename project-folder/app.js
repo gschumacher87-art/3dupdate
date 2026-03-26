@@ -18,7 +18,7 @@ dragon.src = 'project-folder/dragon.png';
 
 const frameCount = 3;
 let currentFrame = 0;
-let frameDirection = 1; // 🔥 ping-pong direction
+let frameDirection = 1;
 const frameDuration = 200;
 let lastFrameTime = 0;
 
@@ -52,7 +52,7 @@ dragon.onload = function () {
         currentFrame += frameDirection;
 
         if (currentFrame === frameCount - 1 || currentFrame === 0) {
-            frameDirection *= -1; // reverse at ends
+            frameDirection *= -1;
         }
     }
 
@@ -61,7 +61,7 @@ dragon.onload = function () {
         const delta = timestamp - lastFrameTime;
 
         if (delta >= frameDuration) {
-            updateFrame(); // 🔥 ping-pong instead of loop
+            updateFrame();
             lastFrameTime = timestamp;
         }
 
@@ -83,14 +83,16 @@ dragon.onload = function () {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon (no offsets needed now)
+        // 🔥 FINAL FIX: slight frame offset
+        const frameOffsetX = [-4, 0, 4];
+
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
             0,
             spriteWidth,
             spriteHeight,
-            dragonObj.x,
+            dragonObj.x + frameOffsetX[currentFrame],
             dragonObj.y,
             dragonObj.width,
             dragonObj.height
