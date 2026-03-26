@@ -9,7 +9,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ===== IMAGE (GUARANTEED LOAD) =====
+// ===== IMAGE =====
 const dragon = new Image();
 dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
 
@@ -26,15 +26,17 @@ function loop() {
   const fw = dragon.width / frames;
   const fh = dragon.height;
 
-  const size = canvas.width * 0.12;
+  // 👇 FIX: use INTEGER size (prevents subpixel jitter)
+  const size = Math.floor(canvas.width * 0.12);
 
-  const x = canvas.width * 0.2;
-  const y = canvas.height * 0.45;
+  // 👇 FIX: lock to whole pixels
+  const x = Math.floor(canvas.width * 0.2);
+  const y = Math.floor(canvas.height * 0.45);
 
   ctx.drawImage(
     dragon,
-    frame * fw, 0,
-    fw, fh,
+    Math.floor(frame * fw), 0,
+    Math.floor(fw), Math.floor(fh),
     x - size / 2,
     y - size / 2,
     size,
@@ -53,8 +55,4 @@ function loop() {
 // ===== START =====
 dragon.onload = () => {
   loop();
-};
-
-dragon.onerror = () => {
-  console.log("FAILED TO LOAD IMAGE");
 };
