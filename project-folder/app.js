@@ -16,9 +16,9 @@ resizeCanvas();
 const dragon = new Image();
 dragon.src = 'project-folder/dragon.png';
 
-const frameCount = 3;       // number of frames in sprite
+const frameCount = 3;
 let currentFrame = 0;
-const frameDuration = 150;  // ms per frame
+const frameDuration = 150; // ms per frame
 let lastFrameTime = 0;
 
 // Dragon physics
@@ -39,13 +39,19 @@ dragon.onload = function () {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
-    // Scale dragon to roughly 1/5 canvas width
     const scale = (canvas.width / 5) / spriteWidth;
     dragonObj.width = spriteWidth * scale;
     dragonObj.height = spriteHeight * scale;
 
+    // Manually defined per-frame offsets (X, Y) to keep body stationary
+    // Tweak these if needed while watching the animation
+    const frameOffsets = [
+        { x: 0, y: 0 },    // frame 0
+        { x: -1, y: 0 },   // frame 1
+        { x: 1, y: 0 }     // frame 2
+    ];
+
     function animate(timestamp) {
-        // Advance frame timing
         if (!lastFrameTime) lastFrameTime = timestamp;
         const delta = timestamp - lastFrameTime;
         if (delta >= frameDuration) {
@@ -53,11 +59,10 @@ dragon.onload = function () {
             lastFrameTime = timestamp;
         }
 
-        // Physics: gravity
+        // Physics
         dragonObj.velocity += dragonObj.gravity;
         dragonObj.y += dragonObj.velocity;
 
-        // Prevent leaving canvas
         if (dragonObj.y + dragonObj.height > canvas.height) {
             dragonObj.y = canvas.height - dragonObj.height;
             dragonObj.velocity = 0;
@@ -67,15 +72,15 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
-        // Round positions to prevent sub-pixel jitter
-        const drawX = Math.round(dragonObj.x);
-        const drawY = Math.round(dragonObj.y);
+        // Round positions to avoid sub-pixel jitter
+        const drawX = Math.round(dragonObj.x + frameOffsets[currentFrame].x);
+        const drawY = Math.round(dragonObj.y + frameOffsets[currentFrame].y);
 
         // Black background
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon (no offsets needed)
+        // Draw dragon
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
