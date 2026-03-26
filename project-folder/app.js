@@ -4,7 +4,6 @@ import { setupControls } from './controls.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Full window canvas
 function resizeCanvas() {
     canvas.width = window.innerWidth * 0.8;
     canvas.height = window.innerHeight * 0.8;
@@ -12,16 +11,14 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Dragon sprite
 const dragon = new Image();
-dragon.src = 'project-folder/dragon.png';
+dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
 
 const frameCount = 3;
 let currentFrame = 0;
-const frameDuration = 150; // ms per frame
+const frameDuration = 150;
 let lastFrameTime = 0;
 
-// Dragon physics
 const dragonObj = {
     x: canvas.width / 4,
     y: canvas.height / 2,
@@ -32,7 +29,6 @@ const dragonObj = {
     lift: -10
 };
 
-// Setup controls
 setupControls(dragonObj, canvas);
 
 dragon.onload = function () {
@@ -43,12 +39,11 @@ dragon.onload = function () {
     dragonObj.width = spriteWidth * scale;
     dragonObj.height = spriteHeight * scale;
 
-    // Manually defined per-frame offsets (X, Y) to keep body stationary
-    // Tweak these if needed while watching the animation
+    // Per-frame offsets to stabilize body
     const frameOffsets = [
-        { x: 0, y: 0 },    // frame 0
-        { x: -1, y: 0 },   // frame 1
-        { x: 1, y: 0 }     // frame 2
+        { x: 0, y: 0 },   // frame 0
+        { x: -1, y: 0 },  // frame 1
+        { x: 1, y: 0 }    // frame 2
     ];
 
     function animate(timestamp) {
@@ -72,7 +67,7 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
-        // Round positions to avoid sub-pixel jitter
+        // Round positions
         const drawX = Math.round(dragonObj.x + frameOffsets[currentFrame].x);
         const drawY = Math.round(dragonObj.y + frameOffsets[currentFrame].y);
 
@@ -80,7 +75,6 @@ dragon.onload = function () {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
