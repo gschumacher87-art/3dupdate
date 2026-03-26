@@ -3,9 +3,16 @@ import { setupControls } from './controls.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Track logical (game) size
+let gameWidth;
+let gameHeight;
+
 function resizeCanvas() {
-    canvas.width = window.innerWidth * 0.8;
-    canvas.height = window.innerHeight * 0.8;
+    gameWidth = window.innerWidth * 0.8;
+    gameHeight = window.innerHeight * 0.8;
+
+    canvas.width = gameWidth;
+    canvas.height = gameHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
@@ -22,7 +29,7 @@ let lastFrameTime = 0;
 
 // Dragon object
 const dragonObj = {
-    x: 0,
+    xRatio: 0.25, // consistent position across devices
     y: 0,
     width: 0,
     height: 0,
@@ -37,9 +44,8 @@ dragon.onload = function () {
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
-    // Set size relative to screen
     function updateSize() {
-        const scale = (canvas.width / 5) / spriteWidth;
+        const scale = (gameWidth / 5) / spriteWidth;
         dragonObj.width = spriteWidth * scale;
         dragonObj.height = spriteHeight * scale;
     }
@@ -58,15 +64,15 @@ dragon.onload = function () {
 
         updateSize();
 
-        // Lock X to center position (1/4 screen)
-        const baseX = canvas.width / 4;
+        // Stable X position (same on all devices)
+        const baseX = gameWidth * dragonObj.xRatio;
 
         // Physics
         dragonObj.velocity += dragonObj.gravity;
         dragonObj.y += dragonObj.velocity;
 
-        if (dragonObj.y + dragonObj.height > canvas.height) {
-            dragonObj.y = canvas.height - dragonObj.height;
+        if (dragonObj.y + dragonObj.height > gameHeight) {
+            dragonObj.y = gameHeight - dragonObj.height;
             dragonObj.velocity = 0;
         }
 
@@ -75,15 +81,15 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
-        // TRUE centered draw (no offsets ever)
+        // Center sprite properly
         const drawX = Math.round(baseX - dragonObj.width / 2);
         const drawY = Math.round(dragonObj.y);
 
-        // Background
+        // Clear
         ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, gameWidth, gameHeight);
 
-        // Draw sprite
+        // Draw
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
