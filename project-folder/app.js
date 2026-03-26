@@ -27,9 +27,12 @@ let frameDirection = 1;
 const frameDuration = 250;
 let lastFrameTime = 0;
 
+// Optional per-frame X offsets to stabilize jumpy sprite
+const frameOffsets = [0, -5, 5]; // tweak these numbers until the dragon stays in place
+
 // Dragon object
 const dragonObj = {
-    xRatio: 0.25, // consistent position across devices
+    xRatio: 0.25, // stable horizontal position
     y: 0,
     width: 0,
     height: 0,
@@ -64,7 +67,7 @@ dragon.onload = function () {
 
         updateSize();
 
-        // Stable X position (same on all devices)
+        // Stable X position
         const baseX = gameWidth * dragonObj.xRatio;
 
         // Physics
@@ -81,15 +84,15 @@ dragon.onload = function () {
             dragonObj.velocity = 0;
         }
 
-        // Center sprite properly
-        const drawX = Math.round(baseX - dragonObj.width / 2);
+        // Draw position with frame offset
+        const drawX = Math.round(baseX - dragonObj.width / 2 + frameOffsets[currentFrame]);
         const drawY = Math.round(dragonObj.y);
 
-        // Clear
+        // Clear canvas
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, gameWidth, gameHeight);
 
-        // Draw
+        // Draw sprite
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
