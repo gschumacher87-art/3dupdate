@@ -15,15 +15,15 @@ dragon.src = 'project-folder/dragon.png'; // your sprite
 
 const frameCount = 3;
 let currentFrame = 0;
-const frameDuration = 150; // faster flap for Flappy style
+const frameDuration = 150; // flap speed
 let lastFrameTime = 0;
 
-// Dragon size (small for Flappy Bird style)
-const dragonWidth = 50;
-const dragonHeight = 50;
+// Dragon size (double Flappy Bird style)
+const dragonWidth = 100;
+const dragonHeight = 100;
 
-// Dragon position
-let dragonX = canvas.width / 4; // start a bit left
+// Dragon position (slightly more left)
+let dragonX = canvas.width / 6; // closer to left edge
 let dragonY = canvas.height / 2;
 
 dragon.onload = function() {
@@ -44,7 +44,7 @@ function animate(timestamp) {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw dragon small and in place
+    // Draw dragon
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
