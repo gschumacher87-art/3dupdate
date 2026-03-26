@@ -18,7 +18,7 @@ dragon.src = 'project-folder/dragon.png';
 
 const frameCount = 3;        // number of frames in sprite
 let currentFrame = 0;
-let frameDirection = 1;       // ping-pong animation direction
+let frameDirection = 1;       // ping-pong animation
 const frameDuration = 150;    // ms per frame
 let lastFrameTime = 0;
 
@@ -44,6 +44,14 @@ dragon.onload = function () {
     const scale = (canvas.width / 5) / spriteWidth;
     dragonObj.width = spriteWidth * scale;
     dragonObj.height = spriteHeight * scale;
+
+    // Per-frame offsets to keep dragon visually centered
+    // Adjust these numbers according to your sprite sheet
+    const frameOffsets = [
+        { x: 0, y: 0 },   // frame 0
+        { x: 2, y: 0 },   // frame 1
+        { x: -1, y: 0 }   // frame 2
+    ];
 
     function updateFrame() {
         currentFrame += frameDirection;
@@ -77,15 +85,15 @@ dragon.onload = function () {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon (stationary X)
+        // Draw dragon with per-frame offsets
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
             0,
             spriteWidth,
             spriteHeight,
-            dragonObj.x,
-            dragonObj.y,
+            dragonObj.x + frameOffsets[currentFrame].x,
+            dragonObj.y + frameOffsets[currentFrame].y,
             dragonObj.width,
             dragonObj.height
         );
