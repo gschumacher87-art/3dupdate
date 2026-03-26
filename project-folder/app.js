@@ -9,22 +9,20 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Load dragon sprite
+// Load dragon PNG sprite (3 frames horizontal)
 const dragon = new Image();
-dragon.src = 'project-folder/dragon.png';
+dragon.src = 'project-folder/dragon.png'; // your real dragon
 
-const frameCount = 3;   // number of frames
+const frameCount = 3;
 let currentFrame = 0;
 
 dragon.onload = function() {
-    // Auto-detect frame size (assuming frames are horizontal)
     const spriteWidth = dragon.width / frameCount;
     const spriteHeight = dragon.height;
 
     setInterval(() => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Scale to fit canvas
         const scale = Math.min(canvas.width / spriteWidth / 3, canvas.height / spriteHeight / 3);
         const drawWidth = spriteWidth * scale;
         const drawHeight = spriteHeight * scale;
@@ -33,10 +31,10 @@ dragon.onload = function() {
 
         ctx.drawImage(
             dragon,
-            currentFrame * spriteWidth, 0,  // source x, y
-            spriteWidth, spriteHeight,      // source width/height
-            x, y,                           // destination x/y
-            drawWidth, drawHeight            // destination width/height
+            currentFrame * spriteWidth, 0,
+            spriteWidth, spriteHeight,
+            x, y,
+            drawWidth, drawHeight
         );
 
         currentFrame = (currentFrame + 1) % frameCount;
