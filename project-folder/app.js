@@ -16,7 +16,7 @@ dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/
 const frameCount = 3;
 let currentFrame = 0;
 let frameDirection = 1;       // ping-pong direction
-const frameDuration = 150;
+const frameDuration = 1500;
 let lastFrameTime = 0;
 
 const dragonObj = {
