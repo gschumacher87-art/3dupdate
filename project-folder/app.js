@@ -45,9 +45,6 @@ dragon.onload = function () {
     dragonObj.width = spriteWidth * scale;
     dragonObj.height = spriteHeight * scale;
 
-    // Optional per-frame offsets for visual alignment
-    const frameOffsetX = [-5, 0, 5];
-
     function updateFrame() {
         currentFrame += frameDirection;
         if (currentFrame >= frameCount - 1 || currentFrame <= 0) frameDirection *= -1;
@@ -80,14 +77,14 @@ dragon.onload = function () {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon
+        // Draw dragon (stationary X)
         ctx.drawImage(
             dragon,
             currentFrame * spriteWidth,
             0,
             spriteWidth,
             spriteHeight,
-            dragonObj.x + frameOffsetX[currentFrame],
+            dragonObj.x,
             dragonObj.y,
             dragonObj.width,
             dragonObj.height
