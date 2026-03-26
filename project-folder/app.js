@@ -1,5 +1,5 @@
-lconst canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d', { alpha: false });
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d'); // ✅ iOS safe
 ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'none';
@@ -102,7 +102,7 @@ function loop() {
     velocity += gravity;
     y += velocity;
 
-    // 🔒 HARD LOCK (FIXES JITTER)
+    // ✅ HARD LOCK (NO JITTER)
     y = Math.round(y);
     velocity = Math.round(velocity * 1000) / 1000;
 
@@ -158,6 +158,7 @@ function loop() {
     }
   }
 
+  // ===== DRAW PIPES =====
   ctx.fillStyle = 'lime';
   for (const p of pipes) {
     ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
@@ -169,6 +170,7 @@ function loop() {
     );
   }
 
+  // ===== DRAW DRAGON =====
   const drawX = Math.round(x - size / 2);
   const drawY = Math.round(y - size / 2);
 
@@ -180,6 +182,7 @@ function loop() {
     size, size
   );
 
+  // ===== UI =====
   ctx.fillStyle = 'white';
   ctx.font = '24px Arial';
   ctx.fillText(`Score: ${score}`, 20, 40);
@@ -190,6 +193,7 @@ function loop() {
     ctx.fillText('Game Over - tap to restart', 20, 80);
   }
 
+  // ===== ANIMATION =====
   tick++;
   if (tick >= speed) {
     frame = (frame + 1) % frames;
