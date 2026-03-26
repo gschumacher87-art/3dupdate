@@ -32,8 +32,8 @@ let score = 0;
 
 // ===== PIPES =====
 const pipes = [];
-let pipeWidth = Math.floor(canvas.width * 0.08);   // ✅ scaled
-let pipeGap = Math.floor(canvas.height * 0.25);    // ✅ scaled
+let pipeWidth = Math.floor(canvas.width * 0.08);
+let pipeGap = Math.floor(canvas.height * 0.25);
 const pipeSpeed = 2;
 const pipeSpawnEvery = 140;
 let pipeTimer = 0;
@@ -83,7 +83,7 @@ dragon.onload = () => {
 
   size = Math.floor(canvas.width * 0.12);
 
-  // ✅ keep pipes proportional on all devices
+  // keep scaling consistent
   pipeWidth = Math.floor(canvas.width * 0.08);
   pipeGap = Math.floor(canvas.height * 0.25);
 
@@ -111,10 +111,14 @@ function loop() {
     for (const p of pipes) {
       p.x -= pipeSpeed;
 
-      const dragonLeft = x - size / 2;
-      const dragonRight = dragonLeft + size;
-      const dragonTop = y - size / 2;
-      const dragonBottom = dragonTop + size;
+      // ✅ FIXED HITBOX (smaller than sprite)
+      const hitboxScale = 0.7;
+      const hitSize = size * hitboxScale;
+
+      const dragonLeft = x - hitSize / 2;
+      const dragonRight = x + hitSize / 2;
+      const dragonTop = y - hitSize / 2;
+      const dragonBottom = y + hitSize / 2;
 
       const pipeLeft = p.x;
       const pipeRight = p.x + pipeWidth;
