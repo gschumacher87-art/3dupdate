@@ -71,13 +71,18 @@ dragon.onload = function() {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dragon at current physics position
+        // --- Draw dragon centered ---
+        const centerX = dragonObj.x + dragonObj.width / 2;
+        const centerY = dragonObj.y + dragonObj.height / 2;
+
         ctx.drawImage(
             dragon,
-            currentFrame * spriteWidth, 0,
-            spriteWidth, spriteHeight,
-            dragonObj.x, dragonObj.y,
-            dragonObj.width, dragonObj.height
+            currentFrame * spriteWidth, 0,  // source x, y
+            spriteWidth, spriteHeight,      // source width, height
+            centerX - dragonObj.width / 2,  // destination x
+            centerY - dragonObj.height / 2, // destination y
+            dragonObj.width,                // destination width
+            dragonObj.height                // destination height
         );
 
         requestAnimationFrame(animate);
