@@ -1,7 +1,7 @@
  const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Resize canvas to window
+// Resize canvas
 function resizeCanvas() {
     canvas.width = window.innerWidth * 0.8;
     canvas.height = window.innerHeight * 0.8;
@@ -11,7 +11,7 @@ resizeCanvas();
 
 // Dragon sprite
 const dragon = new Image();
-dragon.src = 'project-folder/dragon.png'; // ensure path is correct
+dragon.src = 'project-folder/dragon.png'; // Make sure path is correct
 
 const FRAME_COUNT = 3;
 let currentFrame = 0;
@@ -20,16 +20,19 @@ let lastTime = 0;
 
 let spriteWidth, spriteHeight;
 
-// Center position
-let dragonX, dragonY;
+// Offsets per frame to prevent jiggle
+let frameOffsets = [];
 
 dragon.onload = () => {
     spriteWidth = dragon.width / FRAME_COUNT;
     spriteHeight = dragon.height;
 
-    // center dragon
-    dragonX = (canvas.width - spriteWidth) / 2;
-    dragonY = (canvas.height - spriteHeight) / 2;
+    // Manually set offsets for each frame (adjust these numbers to your sprite)
+    frameOffsets = [
+        { x: canvas.width/2 - spriteWidth/2, y: canvas.height/2 - spriteHeight/2 }, // Frame 0
+        { x: canvas.width/2 - spriteWidth/2, y: canvas.height/2 - spriteHeight/2 }, // Frame 1
+        { x: canvas.width/2 - spriteWidth/2, y: canvas.height/2 - spriteHeight/2 }  // Frame 2
+    ];
 
     requestAnimationFrame(animate);
 };
@@ -46,12 +49,13 @@ function animate(timestamp) {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw current frame at center
+    // Draw dragon using frame offsets
+    const pos = frameOffsets[currentFrame];
     ctx.drawImage(
         dragon,
         currentFrame * spriteWidth, 0,
         spriteWidth, spriteHeight,
-        dragonX, dragonY,
+        pos.x, pos.y,
         spriteWidth, spriteHeight
     );
 
