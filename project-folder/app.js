@@ -42,7 +42,7 @@ dragon.onload = function () {
     // Manual offsets to keep body visually centered
     const frameOffsets = [
         { x: -20, y: 0 },   // frame 0
-        { x: 0, y: 0 }, // frame 1 (wings right)
+        { x: -20, y: 0 }, // frame 1 (wings right)
         { x: 0, y: 0 }    // frame 2 (wings left)
     ];
 
