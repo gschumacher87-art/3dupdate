@@ -11,16 +11,17 @@ resizeCanvas();
 
 // Load dragon sprite (3 frames horizontal)
 const dragon = new Image();
-dragon.src = 'project-folder/dragon.png'; // path relative to index.html
+dragon.src = 'project-folder/dragon.png'; // relative to index.html
 
 const frameCount = 3;
 let currentFrame = 0;
 const frameDuration = 150;
 let lastFrameTime = 0;
 
-// Dragon position and scale
+// Dragon position and fixed draw size
 let dragonX, dragonY;
-const scale = 2; // double size
+const dragonDrawWidth = 100;   // fixed width
+const dragonDrawHeight = 100;  // fixed height
 
 let spriteWidth, spriteHeight;
 
@@ -28,9 +29,9 @@ dragon.onload = function() {
     spriteWidth = dragon.width / frameCount;
     spriteHeight = dragon.height;
 
-    // Center the dragon vertically, left for Flappy Bird style
+    // Center vertically, left for Flappy Bird style
     dragonX = canvas.width / 6;
-    dragonY = canvas.height / 2 - (spriteHeight * scale) / 2;
+    dragonY = canvas.height / 2 - dragonDrawHeight / 2;
 
     requestAnimationFrame(animate);
 };
@@ -48,20 +49,19 @@ function animate(timestamp) {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw dragon
+    // Draw dragon with fixed size
     ctx.drawImage(
         dragon,
         currentFrame * spriteWidth, 0,
         spriteWidth, spriteHeight,
         dragonX, dragonY,
-        spriteWidth * scale,
-        spriteHeight * scale
+        dragonDrawWidth, dragonDrawHeight
     );
 
     requestAnimationFrame(animate);
 }
 
-// Safety: if the image fails to load, log an error
+// Error handling if image fails to load
 dragon.onerror = function() {
-    console.error("Failed to load dragon.png. Make sure the path is correct relative to index.html.");
+    console.error("Failed to load dragon.png. Make sure the path is correct.");
 };
