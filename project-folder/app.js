@@ -1,7 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// FULL DEVICE SAFE SIZE (no weird scaling)
+// FULL SCREEN (stable on all devices)
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -9,39 +9,43 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// LOAD SPRITE
+// LOAD IMAGE (USE YOUR GITHUB URL)
 const dragon = new Image();
-dragon.src = './dragon.png';
+dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
 
-// SPRITE SETTINGS
-const frameWidth = 256;   // EXACT frame width
-const frameHeight = 256;  // EXACT frame height
+// ANIMATION
+let frame = 0;
 const totalFrames = 3;
 
-let frame = 0;
-
-// FIXED POSITION (NO JIGGLE)
 const x = 100;
-const y = canvas.height / 2;
+let y = 200;
 
-// ANIMATION LOOP
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // AUTO FRAME SIZE (no guessing)
+    const frameWidth = dragon.width / totalFrames;
+    const frameHeight = dragon.height;
+
     ctx.drawImage(
         dragon,
-        frame * frameWidth, 0,     // crop X, Y
-        frameWidth, frameHeight,   // crop size
-        x, y,                      // draw position (FIXED)
-        frameWidth, frameHeight    // draw size
+        frame * frameWidth, 0,
+        frameWidth, frameHeight,
+        x, y,
+        frameWidth, frameHeight
     );
 
     frame = (frame + 1) % totalFrames;
 
-    setTimeout(() => requestAnimationFrame(animate), 120);
+    requestAnimationFrame(animate);
 }
 
-// START AFTER LOAD
+// START ONLY WHEN READY
 dragon.onload = () => {
+    console.log("loaded");
     animate();
+};
+
+dragon.onerror = () => {
+    console.log("failed to load image");
 };
