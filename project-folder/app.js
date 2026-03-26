@@ -9,9 +9,9 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ===== IMAGE (root-based path for GitHub) =====
+// ===== IMAGE (GUARANTEED LOAD) =====
 const dragon = new Image();
-dragon.src = '/project-folder/dragon.png';
+dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
 
 // ===== SPRITE =====
 const frames = 3;
@@ -19,24 +19,17 @@ let frame = 0;
 let tick = 0;
 const speed = 6;
 
-// ===== POSITION (flappy style) =====
-function getPos() {
-  return {
-    x: canvas.width * 0.2,
-    y: canvas.height * 0.45
-  };
-}
-
 // ===== LOOP =====
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const { x, y } = getPos();
 
   const fw = dragon.width / frames;
   const fh = dragon.height;
 
   const size = canvas.width * 0.12;
+
+  const x = canvas.width * 0.2;
+  const y = canvas.height * 0.45;
 
   ctx.drawImage(
     dragon,
@@ -44,7 +37,8 @@ function loop() {
     fw, fh,
     x - size / 2,
     y - size / 2,
-    size, size
+    size,
+    size
   );
 
   tick++;
@@ -62,5 +56,5 @@ dragon.onload = () => {
 };
 
 dragon.onerror = () => {
-  console.log('IMAGE NOT FOUND');
+  console.log("FAILED TO LOAD IMAGE");
 };
