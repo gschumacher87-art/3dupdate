@@ -24,7 +24,7 @@ const dragonDrawHeight = 100;
 const frameOffsets = [
     { x: canvas.width / 6, y: canvas.height / 2 }, // Frame 0
     { x: canvas.width / 6, y: canvas.height / 2 }, // Frame 1
-    { x: canvas.width / 6, y: canvas.height / 2 }  // Frame 2
+    { x: canvas.width / 6, y: canvas.height / 20 }  // Frame 2
 ];
 
 let spriteWidth, spriteHeight;
