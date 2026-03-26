@@ -16,7 +16,7 @@ dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/
 const frameCount = 3;
 let currentFrame = 0;
 let frameDirection = 1;       // ping-pong direction
-const frameDuration = 1500;
+const frameDuration = 150;
 let lastFrameTime = 0;
 
 const dragonObj = {
@@ -41,7 +41,7 @@ dragon.onload = function () {
 
     // Manual offsets to keep body visually centered
     const frameOffsets = [
-        { x: -35, y: 0 },   // frame 0
+        { x: -30, y: 0 },   // frame 0
         { x: -20, y: 0 }, // frame 1 (wings right)
         { x: -10, y: 0 }    // frame 2 (wings left)
     ];
