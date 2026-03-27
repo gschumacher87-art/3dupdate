@@ -4,10 +4,17 @@ ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'none';
 
-// ===== CANVAS =====
+// ===== CANVAS (FIXED DPR) =====
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.width = Math.floor(window.innerWidth * dpr);
+  canvas.height = Math.floor(window.innerHeight * dpr);
+
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener('resize', resize);
 resize();
@@ -33,8 +40,8 @@ let score = 0;
 
 // ===== PIPES =====
 const pipes = [];
-let pipeWidth = Math.floor(canvas.width * 0.08);
-let pipeGap = Math.floor(canvas.height * 0.25);
+let pipeWidth = Math.floor(window.innerWidth * 0.08);
+let pipeGap = Math.floor(window.innerHeight * 0.25);
 const pipeSpeed = 2;
 const pipeSpawnEvery = 140;
 let pipeTimer = 0;
@@ -42,10 +49,7 @@ let pipeTimer = 0;
 // ===== PRE-CALC =====
 let fw, fh, size, x, y;
 
-// 🔒 FORCE CENTER LOCK (KEY FIX)
-let offsetX = 0;
-let offsetY = 0;
-
+// ===== INPUT =====
 function flap() {
   if (gameOver) {
     resetGame();
@@ -60,43 +64,43 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'ArrowUp') flap();
 });
 
+// ===== RESET =====
 function resetGame() {
   velocity = 0;
   score = 0;
   gameOver = false;
   pipes.length = 0;
   pipeTimer = 0;
-  x = Math.floor(canvas.width * 0.2);
-  y = Math.floor(canvas.height * 0.45);
+  x = Math.floor(window.innerWidth * 0.2);
+  y = Math.floor(window.innerHeight * 0.45);
 }
 
+// ===== PIPES =====
 function addPipe() {
   const minTop = 60;
-  const maxTop = canvas.height - pipeGap - 120;
+  const maxTop = window.innerHeight - pipeGap - 120;
   const topHeight = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
 
   pipes.push({
-    x: canvas.width,
+    x: window.innerWidth,
     topHeight,
     passed: false
   });
 }
 
+// ===== IMAGE LOAD =====
 dragon.onload = () => {
   fw = Math.floor(dragon.width / frames);
   fh = Math.floor(dragon.height);
 
-  size = Math.floor(canvas.width * 0.12);
+  size = Math.floor(window.innerWidth * 0.12);
+  size = Math.max(32, Math.round(size));
 
-  pipeWidth = Math.floor(canvas.width * 0.08);
-  pipeGap = Math.floor(canvas.height * 0.25);
+  pipeWidth = Math.floor(window.innerWidth * 0.08);
+  pipeGap = Math.floor(window.innerHeight * 0.25);
 
-  x = Math.floor(canvas.width * 0.2);
-  y = Math.floor(canvas.height * 0.45);
-
-  // 🔒 LOCK SPRITE CENTER (prevents frame wobble)
-  offsetX = Math.floor((fw - fw) / 2);
-  offsetY = Math.floor((fh - fh) / 2);
+  x = Math.floor(window.innerWidth * 0.2);
+  y = Math.floor(window.innerHeight * 0.45);
 
   requestAnimationFrame(loop);
 };
@@ -104,13 +108,13 @@ dragon.onload = () => {
 // ===== LOOP =====
 function loop() {
   ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
   if (!gameOver) {
     velocity += gravity;
     y += velocity;
 
-    // 🔒 HARD LOCK
+    // HARD LOCK
     y = Math.round(y);
     velocity = Math.round(velocity * 1000) / 1000;
 
@@ -153,8 +157,8 @@ function loop() {
       pipes.shift();
     }
 
-    if (y + size / 2 > canvas.height) {
-      y = canvas.height - size / 2;
+    if (y + size / 2 > window.innerHeight) {
+      y = window.innerHeight - size / 2;
       gameOver = true;
     }
 
@@ -172,11 +176,11 @@ function loop() {
       p.x,
       p.topHeight + pipeGap,
       pipeWidth,
-      canvas.height - (p.topHeight + pipeGap)
+      window.innerHeight - (p.topHeight + pipeGap)
     );
   }
 
-  // 🔒 DRAW WITH LOCKED CENTER
+  // ===== DRAW DRAGON (PIXEL PERFECT) =====
   const drawX = Math.round(x - size / 2);
   const drawY = Math.round(y - size / 2);
 
@@ -184,9 +188,10 @@ function loop() {
     dragon,
     frame * fw, 0,
     fw, fh,
-    drawX + offsetX,
-    drawY + offsetY,
-    size, size
+    drawX,
+    drawY,
+    size,
+    size
   );
 
   // ===== UI =====
