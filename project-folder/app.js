@@ -31,7 +31,7 @@ dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/
 const frames = 3;
 let frame = 0;
 let tick = 0;
-const speed = 6;
+const speed = 60;
 
 // 🔧 MANUAL FRAME OFFSETS (YOU TUNE THESE)
 const frameOffsetX = [0, 0, 0];
