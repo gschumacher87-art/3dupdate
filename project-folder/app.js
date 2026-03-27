@@ -4,7 +4,11 @@ ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'none';
 
-// ===== CANVAS (FIXED DPR) =====
+// ===== VIEW SIZE (KEY FIX) =====
+const viewWidth = () => canvas.clientWidth;
+const viewHeight = () => canvas.clientHeight;
+
+// ===== CANVAS (DPR SAFE) =====
 function resize() {
   const dpr = window.devicePixelRatio || 1;
 
@@ -29,7 +33,7 @@ let frame = 0;
 let tick = 0;
 const speed = 6;
 
-// ===== FLAPPY PHYSICS =====
+// ===== PHYSICS =====
 let velocity = 0;
 const gravity = 0.5;
 const lift = -8;
@@ -40,8 +44,8 @@ let score = 0;
 
 // ===== PIPES =====
 const pipes = [];
-let pipeWidth = Math.floor(window.innerWidth * 0.08);
-let pipeGap = Math.floor(window.innerHeight * 0.25);
+let pipeWidth;
+let pipeGap;
 const pipeSpeed = 2;
 const pipeSpawnEvery = 140;
 let pipeTimer = 0;
@@ -71,18 +75,19 @@ function resetGame() {
   gameOver = false;
   pipes.length = 0;
   pipeTimer = 0;
-  x = Math.floor(window.innerWidth * 0.2);
-  y = Math.floor(window.innerHeight * 0.45);
+
+  x = Math.floor(viewWidth() * 0.2);
+  y = Math.floor(viewHeight() * 0.45);
 }
 
 // ===== PIPES =====
 function addPipe() {
   const minTop = 60;
-  const maxTop = window.innerHeight - pipeGap - 120;
+  const maxTop = viewHeight() - pipeGap - 120;
   const topHeight = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
 
   pipes.push({
-    x: window.innerWidth,
+    x: viewWidth(),
     topHeight,
     passed: false
   });
@@ -93,14 +98,14 @@ dragon.onload = () => {
   fw = Math.floor(dragon.width / frames);
   fh = Math.floor(dragon.height);
 
-  size = Math.floor(window.innerWidth * 0.12);
+  size = Math.floor(viewWidth() * 0.12);
   size = Math.max(32, Math.round(size));
 
-  pipeWidth = Math.floor(window.innerWidth * 0.08);
-  pipeGap = Math.floor(window.innerHeight * 0.25);
+  pipeWidth = Math.floor(viewWidth() * 0.08);
+  pipeGap = Math.floor(viewHeight() * 0.25);
 
-  x = Math.floor(window.innerWidth * 0.2);
-  y = Math.floor(window.innerHeight * 0.45);
+  x = Math.floor(viewWidth() * 0.2);
+  y = Math.floor(viewHeight() * 0.45);
 
   requestAnimationFrame(loop);
 };
@@ -108,13 +113,13 @@ dragon.onload = () => {
 // ===== LOOP =====
 function loop() {
   ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+  ctx.fillRect(0, 0, viewWidth(), viewHeight());
 
   if (!gameOver) {
     velocity += gravity;
     y += velocity;
 
-    // HARD LOCK
+    // LOCK
     y = Math.round(y);
     velocity = Math.round(velocity * 1000) / 1000;
 
@@ -157,8 +162,8 @@ function loop() {
       pipes.shift();
     }
 
-    if (y + size / 2 > window.innerHeight) {
-      y = window.innerHeight - size / 2;
+    if (y + size / 2 > viewHeight()) {
+      y = viewHeight() - size / 2;
       gameOver = true;
     }
 
@@ -176,11 +181,11 @@ function loop() {
       p.x,
       p.topHeight + pipeGap,
       pipeWidth,
-      window.innerHeight - (p.topHeight + pipeGap)
+      viewHeight() - (p.topHeight + pipeGap)
     );
   }
 
-  // ===== DRAW DRAGON (PIXEL PERFECT) =====
+  // ===== DRAW DRAGON =====
   const drawX = Math.round(x - size / 2);
   const drawY = Math.round(y - size / 2);
 
@@ -213,3 +218,4 @@ function loop() {
 
   requestAnimationFrame(loop);
 }
+  
