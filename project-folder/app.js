@@ -27,16 +27,6 @@ resize();
 const dragon = new Image();
 dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
 
-// ===== SPRITE =====
-const frames = 3;
-let frame = 0;
-let tick = 0;
-const speed = 80;
-
-// 🔧 MANUAL FRAME OFFSETS (YOU TUNE THESE)
-const frameOffsetX = [0, 2, -4];
-const frameOffsetY = [0, 0, 0];
-
 // ===== PHYSICS =====
 let velocity = 0;
 const gravity = 0.5;
@@ -55,7 +45,7 @@ const pipeSpawnEvery = 140;
 let pipeTimer = 0;
 
 // ===== PRE-CALC =====
-let fw, fh, size, x, y;
+let size, x, y;
 
 // ===== INPUT =====
 function flap() {
@@ -99,9 +89,6 @@ function addPipe() {
 
 // ===== IMAGE LOAD =====
 dragon.onload = () => {
-  fw = Math.floor(dragon.width / frames);
-  fh = Math.floor(dragon.height);
-
   size = Math.floor(viewWidth() * 0.12);
   size = Math.max(32, Math.round(size));
 
@@ -188,17 +175,12 @@ function loop() {
     );
   }
 
-  // ===== DRAW DRAGON (WITH MANUAL OFFSET) =====
-  const baseX = Math.round(x - size / 2);
-  const baseY = Math.round(y - size / 2);
-
-  const drawX = baseX + frameOffsetX[frame];
-  const drawY = baseY + frameOffsetY[frame];
+  // ===== DRAW DRAGON (SINGLE SPRITE - PERFECT CENTER) =====
+  const drawX = Math.round(x - size / 2);
+  const drawY = Math.round(y - size / 2);
 
   ctx.drawImage(
     dragon,
-    frame * fw, 0,
-    fw, fh,
     drawX,
     drawY,
     size,
@@ -213,13 +195,6 @@ function loop() {
   if (gameOver) {
     ctx.font = '28px Arial';
     ctx.fillText('Game Over - tap to restart', 20, 80);
-  }
-
-  // ===== ANIMATION =====
-  tick++;
-  if (tick >= speed) {
-    frame = (frame + 1) % frames;
-    tick = 0;
   }
 
   requestAnimationFrame(loop);
