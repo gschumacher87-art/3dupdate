@@ -34,7 +34,7 @@ let tick = 0;
 const speed = 60;
 
 // 🔧 MANUAL FRAME OFFSETS (YOU TUNE THESE)
-const frameOffsetX = [12, 2, 8];
+const frameOffsetX = [12, 2, 15];
 const frameOffsetY = [0, 0, 0];
 
 // ===== PHYSICS =====
