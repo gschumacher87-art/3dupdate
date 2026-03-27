@@ -4,11 +4,11 @@ ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'none';
 
-// ===== VIEW SIZE (KEY FIX) =====
+// ===== VIEW SIZE =====
 const viewWidth = () => canvas.clientWidth;
 const viewHeight = () => canvas.clientHeight;
 
-// ===== CANVAS (DPR SAFE) =====
+// ===== CANVAS =====
 function resize() {
   const dpr = window.devicePixelRatio || 1;
 
@@ -32,6 +32,10 @@ const frames = 3;
 let frame = 0;
 let tick = 0;
 const speed = 6;
+
+// 🔧 MANUAL FRAME OFFSETS (YOU TUNE THESE)
+const frameOffsetX = [0, 0, 0];
+const frameOffsetY = [0, 0, 0];
 
 // ===== PHYSICS =====
 let velocity = 0;
@@ -119,7 +123,6 @@ function loop() {
     velocity += gravity;
     y += velocity;
 
-    // LOCK
     y = Math.round(y);
     velocity = Math.round(velocity * 1000) / 1000;
 
@@ -185,9 +188,12 @@ function loop() {
     );
   }
 
-  // ===== DRAW DRAGON =====
-  const drawX = Math.round(x - size / 2);
-  const drawY = Math.round(y - size / 2);
+  // ===== DRAW DRAGON (WITH MANUAL OFFSET) =====
+  const baseX = Math.round(x - size / 2);
+  const baseY = Math.round(y - size / 2);
+
+  const drawX = baseX + frameOffsetX[frame];
+  const drawY = baseY + frameOffsetY[frame];
 
   ctx.drawImage(
     dragon,
@@ -218,4 +224,3 @@ function loop() {
 
   requestAnimationFrame(loop);
 }
-  
