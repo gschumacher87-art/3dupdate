@@ -30,7 +30,7 @@ const enemies = (() => {
 
     // ===== ENEMIES =====
     for (const e of list) {
-      if (e.dead) continue;
+      if (!e || e.dead) continue;
 
       e.x -= 3;
       e.y = obstacles.getGroundY(e.x);
@@ -49,7 +49,7 @@ const enemies = (() => {
     }
 
     // REMOVE DEAD + OFFSCREEN
-    list = list.filter(e => !e.dead && e.x > -50);
+    list = list.filter(e => e && !e.dead && e.x > -50);
 
     // ===== BULLETS =====
     for (const b of bullets) {
@@ -60,7 +60,7 @@ const enemies = (() => {
       const dy = b.y - dragon.y;
 
       if (Math.sqrt(dx * dx + dy * dy) < dragon.size / 2) {
-        onHit();
+        if (onHit) onHit(); // ✅ SAFE CALL
       }
     }
 
@@ -74,7 +74,7 @@ const enemies = (() => {
     ctx.lineWidth = 2;
 
     for (const e of list) {
-      if (e.dead) continue;
+      if (!e || e.dead) continue;
 
       const y = e.y;
 
