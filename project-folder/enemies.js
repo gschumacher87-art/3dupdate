@@ -10,8 +10,19 @@ const enemies = (() => {
     bullets = [];
   }
 
-  // ===== SPAWN IN CLEAN GAPS ONLY =====
+  // ===== SPAWN TYPES =====
   function spawn(viewWidth) {
+
+    // 50% ground gap enemy, 50% flying enemy
+    if (Math.random() < 0.5) {
+      spawnGround(viewWidth);
+    } else {
+      spawnFlying(viewWidth);
+    }
+  }
+
+  // ===== GROUND GAP ENEMY =====
+  function spawnGround(viewWidth) {
 
     const trees = obstacles.getTrees ? obstacles.getTrees() : [];
     if (!trees || trees.length < 2) return;
@@ -27,14 +38,10 @@ const enemies = (() => {
       const gapEnd = t2.x;
       const gapSize = gapEnd - gapStart;
 
-      // 👇 ONLY LARGE CLEAN GAPS
       if (gapSize > 120) {
 
         const x = gapStart + gapSize / 2;
-
         const groundY = obstacles.getGroundY(x);
-
-        // 👇 LOCK HEIGHT INSIDE GAP (NOT RANDOM CHAOS)
         const y = groundY - (80 + gapSize * 0.3);
 
         list.push({
@@ -42,6 +49,7 @@ const enemies = (() => {
           y,
           size: 20,
           dead: false,
+          type: 'ground',
           shootTimer: 60
         });
 
@@ -50,10 +58,27 @@ const enemies = (() => {
     }
   }
 
+  // ===== FLYING ENEMY =====
+  function spawnFlying(viewWidth) {
+
+    const x = viewWidth();
+    const y = 60 + Math.random() * (window.innerHeight * 0.5);
+
+    list.push({
+      x,
+      y,
+      size: 20,
+      dead: false,
+      type: 'flying',
+      shootTimer: 80,
+      wave: Math.random() * Math.PI * 2
+    });
+  }
+
   function update(viewWidth, viewHeight, dragon, onHit) {
 
     // ===== SPAWN =====
-    if (Math.random() < 0.015) spawn(viewWidth);
+    if (Math.random() < 0.02) spawn(viewWidth);
 
     // ===== ENEMIES =====
     for (const e of list) {
@@ -61,17 +86,30 @@ const enemies = (() => {
 
       e.x -= 3;
 
-      const groundY = obstacles.getGroundY(e.x);
-      const ceiling = 40;
-      const floor = groundY - 40;
+      if (e.type === 'ground') {
 
-      // 👇 KEEP THEM IN PLAYABLE ZONE
-      if (e.y > floor) e.y = floor;
-      if (e.y < ceiling) e.y = ceiling;
+        const groundY = obstacles.getGroundY(e.x);
+        const ceiling = 40;
+        const floor = groundY - 40;
 
+        if (e.y > floor) e.y = floor;
+        if (e.y < ceiling) e.y = ceiling;
+
+      } else if (e.type === 'flying') {
+
+        // wave movement
+        e.wave += 0.1;
+        e.y += Math.sin(e.wave) * 1.5;
+
+        // keep in screen
+        if (e.y < 40) e.y = 40;
+        if (e.y > viewHeight() * 0.7) e.y = viewHeight() * 0.7;
+      }
+
+      // ===== SHOOT =====
       e.shootTimer--;
       if (e.shootTimer <= 0) {
-        e.shootTimer = 80;
+        e.shootTimer = e.type === 'flying' ? 70 : 80;
 
         bullets.push({
           x: e.x,
@@ -98,17 +136,41 @@ const enemies = (() => {
     }
 
     bullets = bullets.filter(b => b.x > -50);
+
+    // ===== FIREBALL HIT =====
+    const fireballs = window.dragon.getFireballs();
+
+    for (const f of fireballs) {
+      if (!f) continue;
+
+      for (const e of list) {
+        if (!e || e.dead) continue;
+
+        if (
+          Math.abs(f.x - e.x) < e.size &&
+          Math.abs(f.y - e.y) < e.size
+        ) {
+          e.dead = true;
+          f.dead = true;
+        }
+      }
+    }
   }
 
   function draw(ctx) {
 
-    ctx.strokeStyle = '#ffcc00';
     ctx.lineWidth = 2;
 
     for (const e of list) {
       if (!e || e.dead) continue;
 
       const y = e.y;
+
+      if (e.type === 'ground') {
+        ctx.strokeStyle = '#ffcc00';
+      } else {
+        ctx.strokeStyle = '#00ffff'; // flying = different color
+      }
 
       ctx.beginPath();
       ctx.arc(e.x, y - 12, 4, 0, Math.PI * 2);
