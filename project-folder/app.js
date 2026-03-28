@@ -37,14 +37,6 @@ function fire() {
   if (!gameOver) dragon.fire();
 }
 
-window.addEventListener('click', flap);
-window.addEventListener('touchstart', flap, { passive: true });
-
-window.addEventListener('keydown', e => {
-  if (e.code === 'Space' || e.code === 'ArrowUp') flap();
-  if (e.code === 'KeyF') fire();
-});
-
 // ===== FIRE BUTTON =====
 const fireBtn = document.createElement('button');
 fireBtn.innerText = '🔥';
@@ -61,12 +53,33 @@ fireBtn.style.zIndex = 10;
 
 document.body.appendChild(fireBtn);
 
+// ===== INPUT HANDLING (FIXED) =====
+
+// TOUCH
+window.addEventListener('touchstart', (e) => {
+  if (e.target === fireBtn) return;
+  flap();
+}, { passive: true });
+
+// CLICK
+window.addEventListener('click', (e) => {
+  if (e.target === fireBtn) return;
+  flap();
+});
+
+// BUTTON EVENTS
 fireBtn.addEventListener('touchstart', (e) => {
   e.preventDefault();
   fire();
 }, { passive: false });
 
 fireBtn.addEventListener('click', fire);
+
+// KEYBOARD
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') flap();
+  if (e.code === 'KeyF') fire();
+});
 
 // ===== RESET =====
 function resetGame() {
@@ -109,7 +122,6 @@ function loop(time) {
 
       const d = dragon.get();
 
-      // ENEMIES
       enemies.update(
         viewWidth,
         viewHeight,
@@ -117,14 +129,12 @@ function loop(time) {
         () => gameOver = true
       );
 
-      // DRAGON
       dragon.update(
         viewWidth,
         viewHeight,
         enemies.getList()
       );
 
-      // OBSTACLES
       obstacles.update(
         viewHeight,
         viewWidth,
@@ -136,7 +146,6 @@ function loop(time) {
       if (d.y + d.size / 2 > viewHeight()) gameOver = true;
     }
 
-    // DRAW
     obstacles.draw(ctx);
     enemies.draw(ctx);
     dragon.draw(ctx);
