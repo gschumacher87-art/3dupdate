@@ -13,8 +13,33 @@ const obstacles = (() => {
   function spawnLightning() {
     lightning.push({
       x: vw(),
-      life: 20
+      life: 12,
+      segments: generateBolt()
     });
+  }
+
+  function generateBolt() {
+    const segments = [];
+    const step = 20;
+
+    let x = 0;
+    let y = 0;
+
+    while (y < vh()) {
+      x += (Math.random() - 0.5) * 40;
+      y += step;
+
+      segments.push({ x, y });
+
+      if (Math.random() < 0.2) {
+        segments.push({
+          x: x + (Math.random() - 0.5) * 50,
+          y: y + step
+        });
+      }
+    }
+
+    return segments;
   }
 
   // ===== INIT =====
@@ -30,7 +55,7 @@ const obstacles = (() => {
     lightning = [];
   }
 
-  // ===== CREATE =====
+  // ===== CREATE PIPE =====
   function createPipe() {
     const topHeight = Math.random() * (vh() - pipeGap - 100) + 50;
 
@@ -44,7 +69,7 @@ const obstacles = (() => {
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // ===== PIPES (UNCHANGED) =====
+    // ===== PIPES =====
     if (pipes.length === 0 || pipes[pipes.length - 1].x < viewWidth() - 250) {
       pipes.push(createPipe());
     }
@@ -72,7 +97,7 @@ const obstacles = (() => {
       pipes.shift();
     }
 
-    // ===== LIGHTNING UPDATE =====
+    // ===== LIGHTNING =====
     if (Math.random() < 0.02) {
       spawnLightning();
     }
@@ -88,11 +113,10 @@ const obstacles = (() => {
   // ===== DRAW =====
   function draw(ctx, viewHeight) {
 
-    // ===== PIPES (UNCHANGED) =====
+    // ===== PIPES =====
     ctx.fillStyle = 'lime';
 
     for (const p of pipes) {
-
       ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
 
       ctx.fillRect(
@@ -103,49 +127,50 @@ const obstacles = (() => {
       );
     }
 
-    // ===== LIGHTNING DRAW =====
+    // ===== LIGHTNING =====
     for (const l of lightning) {
-      drawBolt(ctx, l.x);
+      drawBolt(ctx, l);
     }
   }
 
-  function drawBolt(ctx, x) {
-    const step = 20;
-    let y = 0;
-    let offsetX = 0;
+  function drawBolt(ctx, l) {
+    const flicker = Math.random() * 3;
 
     ctx.strokeStyle = 'cyan';
-    ctx.lineWidth = 2 + Math.random() * 2;
-    ctx.shadowBlur = 15;
+    ctx.lineWidth = 2 + flicker;
+
+    ctx.shadowBlur = 15 + flicker * 5;
     ctx.shadowColor = 'cyan';
 
     ctx.beginPath();
-    ctx.moveTo(x, 0);
 
-    while (y < vh()) {
-      offsetX += (Math.random() - 0.5) * 30;
-      y += step;
+    let prev = { x: l.x, y: 0 };
 
-      ctx.lineTo(x + offsetX, y);
+    for (const s of l.segments) {
+      const jitterX = s.x + (Math.random() - 0.5) * 10;
+      const jitterY = s.y + (Math.random() - 0.5) * 10;
+
+      ctx.moveTo(prev.x, prev.y);
+      ctx.lineTo(l.x + jitterX, jitterY);
+
+      prev = { x: l.x + jitterX, y: jitterY };
     }
 
     ctx.stroke();
 
-    // core
+    // white core
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 1;
 
     ctx.beginPath();
-    ctx.moveTo(x, 0);
 
-    y = 0;
-    offsetX = 0;
+    prev = { x: l.x, y: 0 };
 
-    while (y < vh()) {
-      offsetX += (Math.random() - 0.5) * 10;
-      y += step;
+    for (const s of l.segments) {
+      ctx.moveTo(prev.x, prev.y);
+      ctx.lineTo(l.x + s.x, s.y);
 
-      ctx.lineTo(x + offsetX, y);
+      prev = { x: l.x + s.x, y: s.y };
     }
 
     ctx.stroke();
