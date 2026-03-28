@@ -25,34 +25,8 @@ const obstacles = (() => {
     return {
       x: vw(),
       topHeight,
-      passed: false,
-      topBolt: generateBolt(topHeight),
-      bottomBolt: generateBolt(vh() - (topHeight + pipeGap))
+      passed: false
     };
-  }
-
-  function generateBolt(height) {
-    const segments = [];
-    const step = 20;
-
-    let x = 0;
-    let y = 0;
-
-    while (y < height) {
-      x += (Math.random() - 0.5) * 40;
-      y += step;
-
-      segments.push({ x, y });
-
-      if (Math.random() < 0.2) {
-        segments.push({
-          x: x + (Math.random() - 0.5) * 50,
-          y: y + step
-        });
-      }
-    }
-
-    return segments;
   }
 
   // ===== UPDATE =====
@@ -71,7 +45,7 @@ const obstacles = (() => {
         onScore();
       }
 
-      // collision (still rectangular = stable)
+      // collision
       const inX = dragon.x + dragon.size / 2 > p.x &&
                   dragon.x - dragon.size / 2 < p.x + pipeWidth;
 
@@ -89,57 +63,23 @@ const obstacles = (() => {
     }
   }
 
-  // ===== DRAW (LIGHTNING) =====
+  // ===== DRAW (ORIGINAL PIPES) =====
   function draw(ctx, viewHeight) {
+    ctx.fillStyle = 'lime';
+
     for (const p of pipes) {
-      drawBolt(ctx, p.x + pipeWidth / 2, 0, p.topBolt);
-      drawBolt(ctx, p.x + pipeWidth / 2, p.topHeight + pipeGap, p.bottomBolt);
+
+      // top pipe
+      ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
+
+      // bottom pipe
+      ctx.fillRect(
+        p.x,
+        p.topHeight + pipeGap,
+        pipeWidth,
+        viewHeight() - (p.topHeight + pipeGap)
+      );
     }
-  }
-
-  function drawBolt(ctx, baseX, offsetY, segments) {
-    const flicker = Math.random() * 3;
-
-    ctx.strokeStyle = 'cyan';
-    ctx.lineWidth = 3 + flicker;
-
-    ctx.shadowBlur = 20 + flicker * 5;
-    ctx.shadowColor = 'cyan';
-
-    ctx.beginPath();
-
-    let prev = { x: baseX, y: offsetY };
-
-    for (const s of segments) {
-      const jitterX = s.x + (Math.random() - 0.5) * 10;
-      const jitterY = s.y + (Math.random() - 0.5) * 10;
-
-      ctx.moveTo(prev.x, prev.y);
-      ctx.lineTo(baseX + jitterX, offsetY + jitterY);
-
-      prev = { x: baseX + jitterX, y: offsetY + jitterY };
-    }
-
-    ctx.stroke();
-
-    // inner white core
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 1.5;
-
-    ctx.beginPath();
-
-    prev = { x: baseX, y: offsetY };
-
-    for (const s of segments) {
-      ctx.moveTo(prev.x, prev.y);
-      ctx.lineTo(baseX + s.x, offsetY + s.y);
-
-      prev = { x: baseX + s.x, y: offsetY + s.y };
-    }
-
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
   }
 
   return {
