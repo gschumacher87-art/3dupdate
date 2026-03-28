@@ -91,60 +91,67 @@ dragon.img.onload = () => {
 // ===== LOOP =====
 function loop(time) {
 
-  const deltaTime = time - lastTime;
-  if (deltaTime > 1000) {
+  try {
+
+    const deltaTime = time - lastTime;
+    if (deltaTime > 1000) {
+      lastTime = time;
+      return requestAnimationFrame(loop);
+    }
     lastTime = time;
-    return requestAnimationFrame(loop);
-  }
-  lastTime = time;
 
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, viewWidth(), viewHeight());
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, viewWidth(), viewHeight());
 
-  if (!gameOver) {
+    if (!gameOver) {
 
-    score += deltaTime / 1000;
+      score += deltaTime / 1000;
 
-    const d = dragon.get();
+      const d = dragon.get();
 
-    // ✅ ENEMIES FIRST
-    enemies.update(
-      viewWidth,
-      viewHeight,
-      d,
-      () => gameOver = true
-    );
+      // ENEMIES
+      enemies.update(
+        viewWidth,
+        viewHeight,
+        d,
+        () => gameOver = true
+      );
 
-    // ✅ DRAGON WITH ENEMIES
-    dragon.update(
-      viewWidth,
-      viewHeight,
-      enemies.getList()
-    );
+      // DRAGON
+      dragon.update(
+        viewWidth,
+        viewHeight,
+        enemies.getList()
+      );
 
-    // ✅ OBSTACLES LAST
-    obstacles.update(
-      viewHeight,
-      viewWidth,
-      d,
-      () => {},
-      () => gameOver = true
-    );
+      // OBSTACLES
+      obstacles.update(
+        viewHeight,
+        viewWidth,
+        d,
+        () => {},
+        () => gameOver = true
+      );
 
-    if (d.y + d.size / 2 > viewHeight()) gameOver = true;
-  }
+      if (d.y + d.size / 2 > viewHeight()) gameOver = true;
+    }
 
-  obstacles.draw(ctx, viewHeight);
-  enemies.draw(ctx);
-  dragon.draw(ctx);
+    // DRAW
+    obstacles.draw(ctx);
+    enemies.draw(ctx);
+    dragon.draw(ctx);
 
-  ctx.fillStyle = 'white';
-  ctx.font = '24px Arial';
-  ctx.fillText(`Score: ${Math.floor(score)}`, 20, 40);
+    ctx.fillStyle = 'white';
+    ctx.font = '24px Arial';
+    ctx.fillText(`Score: ${Math.floor(score)}`, 20, 40);
 
-  if (gameOver) {
-    ctx.font = '28px Arial';
-    ctx.fillText('Game Over - tap to restart', 20, 80);
+    if (gameOver) {
+      ctx.font = '28px Arial';
+      ctx.fillText('Game Over - tap to restart', 20, 80);
+    }
+
+  } catch (err) {
+    console.error('LOOP CRASH:', err);
   }
 
   requestAnimationFrame(loop);
