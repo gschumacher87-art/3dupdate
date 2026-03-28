@@ -126,7 +126,6 @@ const obstacles = (() => {
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // mountain
     for (const m of mountain) {
       m.x -= groundSpeed;
     }
@@ -139,7 +138,6 @@ const obstacles = (() => {
       });
     }
 
-    // clouds
     if (Math.random() < 0.02) spawnCloud();
 
     for (const c of clouds) {
@@ -148,7 +146,6 @@ const obstacles = (() => {
 
     clouds = clouds.filter(c => c.x > -100);
 
-    // enemies
     if (Math.random() < 0.01) spawnEnemy();
 
     for (const e of enemies) {
@@ -171,7 +168,6 @@ const obstacles = (() => {
 
     enemies = enemies.filter(e => e.x > -50);
 
-    // bullets
     for (const b of bullets) {
       b.x += b.vx;
       b.y += b.vy;
@@ -186,13 +182,11 @@ const obstacles = (() => {
 
     bullets = bullets.filter(b => b.x > -50);
 
-    // ground collision
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) {
       onHit();
     }
 
-    // lightning
     if (Math.random() < 0.02) spawnLightning();
 
     for (const l of lightning) {
@@ -227,7 +221,26 @@ const obstacles = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // enemies (VISIBLE FIX ONLY)
+    // ===== SNOW CAPS (RESTORED ONLY) =====
+    ctx.fillStyle = 'white';
+
+    for (let i = 1; i < mountain.length - 1; i++) {
+      const m = mountain[i];
+
+      if (m.height > 110) {
+        const peakX = m.x;
+        const peakY = vh() - m.height;
+
+        ctx.beginPath();
+        ctx.moveTo(peakX - 10, peakY + 10);
+        ctx.lineTo(peakX, peakY);
+        ctx.lineTo(peakX + 10, peakY + 10);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    // enemies
     ctx.strokeStyle = '#ffcc00';
     ctx.lineWidth = 2;
     ctx.shadowBlur = 6;
