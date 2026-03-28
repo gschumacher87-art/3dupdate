@@ -32,6 +32,7 @@ let lastTime = performance.now();
 function flap() {
   dragon.flap(gameOver, resetGame);
 }
+
 function fire() {
   if (!gameOver) dragon.fire();
 }
@@ -104,22 +105,29 @@ function loop(time) {
 
     score += deltaTime / 1000;
 
-    dragon.update();
-
     const d = dragon.get();
 
+    // ✅ ENEMIES FIRST
+    enemies.update(
+      viewWidth,
+      viewHeight,
+      d,
+      () => gameOver = true
+    );
+
+    // ✅ DRAGON WITH ENEMIES
+    dragon.update(
+      viewWidth,
+      viewHeight,
+      enemies.getList()
+    );
+
+    // ✅ OBSTACLES LAST
     obstacles.update(
       viewHeight,
       viewWidth,
       d,
       () => {},
-      () => gameOver = true
-    );
-
-    enemies.update(
-      viewWidth,
-      viewHeight,
-      d,
       () => gameOver = true
     );
 
