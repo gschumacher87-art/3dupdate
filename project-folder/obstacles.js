@@ -8,12 +8,15 @@ const pipeSpeed = 2;
 const pipeSpawnEvery = 140;
 let pipeTimer = 0;
 
-const lightningSpawnEvery = 220;
+const lightningSpawnEvery = 80; // ✅ faster spawn
 let lightningTimer = 0;
 
 function init(viewWidth, viewHeight) {
   pipeWidth = Math.floor(viewWidth() * 0.08);
   pipeGap = Math.floor(viewHeight() * 0.25);
+
+  // ✅ force one lightning at start (debug + guarantees visibility)
+  addLightning(viewWidth, viewHeight);
 }
 
 function reset() {
@@ -40,7 +43,7 @@ function addPipe(viewHeight, viewWidth) {
 function addLightning(viewWidth, viewHeight) {
   lightning.push({
     x: viewWidth(),
-    life: 25
+    life: 60 // ✅ longer life so visible
   });
 }
 
@@ -98,7 +101,6 @@ function update(viewHeight, viewWidth, dragonData, onScore, onHit) {
     const dragonLeft = dragonData.x - hitSize / 2;
     const dragonRight = dragonData.x + hitSize / 2;
 
-    // simple vertical strike hit zone
     const hitLightning =
       dragonRight > l.x - 10 &&
       dragonLeft < l.x + 10;
@@ -134,7 +136,7 @@ function draw(ctx, viewHeight) {
     );
   }
 
-  // ===== LIGHTNING (CODE DRAWN) =====
+  // ===== LIGHTNING =====
   for (const l of lightning) {
     if (l.life > 0) {
       let x = l.x;
