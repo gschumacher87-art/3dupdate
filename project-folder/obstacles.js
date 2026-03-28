@@ -1,177 +1,151 @@
-const pipes = [];
-const lightning = [];
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
 
-let pipeWidth;
-let pipeGap;
+canvas.style.touchAction = 'none';
 
-const pipeSpeed = 2;
-const pipeSpawnEvery = 140;
-let pipeTimer = 0;
+// ===== VIEW SIZE =====
+const viewWidth = () => canvas.clientWidth;
+const viewHeight = () => canvas.clientHeight;
 
-const lightningSpawnEvery = 80;
-let lightningTimer = 0;
-
-function init(viewWidth, viewHeight) {
-  pipeWidth = Math.floor(viewWidth() * 0.08);
-  pipeGap = Math.floor(viewHeight() * 0.25);
-
-  addLightning(viewWidth, viewHeight); // force first spawn
+// ===== RESIZE =====
+function resize() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
 }
+window.addEventListener('resize', resize);
+resize();
 
-function reset() {
-  pipes.length = 0;
-  lightning.length = 0;
+// ===== PLAYER =====
+const dragon = {
+  x: 100,
+  y: 200,
+  velocity: 0
+};
 
-  pipeTimer = 0;
-  lightningTimer = 0;
-}
+const gravity = 0.5;
+const lift = -8;
 
-function addPipe(viewHeight, viewWidth) {
-  const minTop = 60;
-  const maxTop = viewHeight() - pipeGap - 120;
+// ===== INPUT =====
+canvas.addEventListener('touchstart', () => dragon.velocity = lift);
+canvas.addEventListener('mousedown', () => dragon.velocity = lift);
 
-  const topHeight = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
+// ===== LIGHTNING SYSTEM =====
+let lightning = [];
 
-  pipes.push({
-    x: viewWidth(),
-    topHeight,
-    passed: false
-  });
-}
-
-function addLightning(viewWidth, viewHeight) {
+function spawnLightning() {
   lightning.push({
-    x: viewWidth(),
-    life: 60
+    x: viewWidth() + 50,
+    segments: generateBolt(),
+    life: 10 // frames visible
   });
 }
 
-function update(viewHeight, viewWidth, dragonData, onScore, onHit) {
-  pipeTimer++;
-  lightningTimer++;
+function generateBolt() {
+  const segments = [];
+  const step = 20;
+  let x = 0;
+  let y = 0;
 
-  if (pipeTimer >= pipeSpawnEvery) {
-    addPipe(viewHeight, viewWidth);
-    pipeTimer = 0;
-  }
+  while (y < viewHeight()) {
+    x += (Math.random() - 0.5) * 40; // horizontal jitter
+    y += step;
 
-  if (lightningTimer >= lightningSpawnEvery) {
-    addLightning(viewWidth, viewHeight);
-    lightningTimer = 0;
-  }
+    segments.push({ x, y });
 
-  // ===== PIPES =====
-  for (const p of pipes) {
-    p.x -= pipeSpeed;
-
-    const hitboxScale = 0.7;
-    const hitSize = dragonData.size * hitboxScale;
-
-    const dragonLeft = dragonData.x - hitSize / 2;
-    const dragonRight = dragonData.x + hitSize / 2;
-    const dragonTop = dragonData.y - hitSize / 2;
-    const dragonBottom = dragonData.y + hitSize / 2;
-
-    const pipeLeft = p.x;
-    const pipeRight = p.x + pipeWidth;
-    const topPipeBottom = p.topHeight;
-    const bottomPipeTop = p.topHeight + pipeGap;
-
-    if (!p.passed && pipeRight < dragonLeft) {
-      p.passed = true;
-      onScore();
+    // occasional branch
+    if (Math.random() < 0.2) {
+      segments.push({
+        x: x + (Math.random() - 0.5) * 60,
+        y: y + step
+      });
     }
-
-    const hitPipe =
-      dragonRight > pipeLeft &&
-      dragonLeft < pipeRight &&
-      (dragonTop < topPipeBottom || dragonBottom > bottomPipeTop);
-
-    if (hitPipe) onHit();
   }
 
-  // ===== LIGHTNING =====
+  return segments;
+}
+
+// ===== GAME LOOP =====
+function update() {
+  // physics
+  dragon.velocity += gravity;
+  dragon.y += dragon.velocity;
+
+  // spawn lightning randomly
+  if (Math.random() < 0.03) {
+    spawnLightning();
+  }
+
+  // move lightning
   for (const l of lightning) {
-    l.x -= pipeSpeed;
-
-    const hitboxScale = 0.7;
-    const hitSize = dragonData.size * hitboxScale;
-
-    const dragonLeft = dragonData.x - hitSize / 2;
-    const dragonRight = dragonData.x + hitSize / 2;
-
-    const hitLightning =
-      dragonRight > l.x - 10 &&
-      dragonLeft < l.x + 10;
-
-    if (hitLightning && l.life > 0) onHit();
-
+    l.x -= 6;
     l.life--;
   }
 
-  // cleanup pipes
-  while (pipes.length && pipes[0].x + pipeWidth < 0) {
-    pipes.shift();
-  }
-
-  // cleanup lightning
-  while (lightning.length && (lightning[0].x < -50 || lightning[0].life <= 0)) {
-    lightning.shift();
-  }
+  // remove dead lightning
+  lightning = lightning.filter(l => l.life > 0 && l.x > -100);
 }
 
-function draw(ctx, viewHeight) {
-  // ===== PIPES =====
-  ctx.fillStyle = 'lime';
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (const p of pipes) {
-    ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
+  // ===== DRAW DRAGON =====
+  ctx.fillStyle = 'blue';
+  ctx.fillRect(dragon.x, dragon.y, 30, 30);
 
-    ctx.fillRect(
-      p.x,
-      p.topHeight + pipeGap,
-      pipeWidth,
-      viewHeight() - (p.topHeight + pipeGap)
-    );
-  }
-
-  // ===== LIGHTNING =====
+  // ===== DRAW LIGHTNING =====
   for (const l of lightning) {
-    if (l.life > 0) {
-      const centerX = l.x;
+    const flicker = Math.random() * 4;
 
-      ctx.strokeStyle = 'cyan';
-      ctx.lineWidth = 6;
+    ctx.strokeStyle = 'cyan';
+    ctx.lineWidth = 3 + flicker;
 
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = 'cyan';
+    ctx.shadowBlur = 20 + flicker * 5;
+    ctx.shadowColor = 'cyan';
 
-      ctx.beginPath();
-      ctx.moveTo(centerX, 0);
+    ctx.beginPath();
 
-      let x = centerX;
-      let y = 0;
+    const baseX = l.x;
 
-      for (let i = 0; i < 10; i++) {
-        y += viewHeight() / 10;
-        x += (Math.random() - 0.5) * 30;
-        ctx.lineTo(x, y);
-      }
+    let prev = { x: baseX, y: 0 };
 
-      ctx.stroke();
+    for (const s of l.segments) {
+      const jitterX = s.x + (Math.random() - 0.5) * 10;
+      const jitterY = s.y + (Math.random() - 0.5) * 10;
 
-      ctx.shadowBlur = 0;
+      ctx.moveTo(prev.x, prev.y);
+      ctx.lineTo(baseX + jitterX, jitterY);
 
-      // debug hitbox
-      ctx.fillStyle = 'rgba(0,255,255,0.2)';
-      ctx.fillRect(centerX - 10, 0, 20, viewHeight());
+      prev = { x: baseX + jitterX, y: jitterY };
     }
+
+    ctx.stroke();
+
+    // inner bright core
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+
+    prev = { x: baseX, y: 0 };
+
+    for (const s of l.segments) {
+      ctx.moveTo(prev.x, prev.y);
+      ctx.lineTo(baseX + s.x, s.y);
+      prev = { x: baseX + s.x, y: s.y };
+    }
+
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
   }
 }
 
-window.obstacles = {
-  init,
-  reset,
-  update,
-  draw
-};
+// ===== LOOP =====
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
