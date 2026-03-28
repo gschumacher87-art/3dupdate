@@ -10,9 +10,9 @@ const enemies = (() => {
     bullets = [];
   }
 
-  function spawn(viewWidth, getGroundY) {
+  function spawn(viewWidth) {
     const x = viewWidth();
-    const y = getGroundY(x);
+    const y = obstacles.getGroundY(x);
 
     list.push({
       x,
@@ -23,7 +23,7 @@ const enemies = (() => {
 
   function update(viewWidth, viewHeight, dragon, onHit) {
 
-    if (Math.random() < 0.01) spawn(viewWidth, obstacles.getGroundY);
+    if (Math.random() < 0.01) spawn(viewWidth);
 
     for (const e of list) {
       e.x -= 3;
