@@ -4,6 +4,17 @@ const obstacles = (() => {
 
   const groundSpeed = 3;
 
+  // ===== CLOUDS =====
+  let clouds = [];
+
+  function spawnCloud() {
+    clouds.push({
+      x: vw(),
+      y: Math.random() * vh() * 0.4,
+      size: Math.random() * 40 + 40
+    });
+  }
+
   // ===== LIGHTNING STRIKES =====
   let strikes = [];
 
@@ -52,29 +63,45 @@ const obstacles = (() => {
     const i = Math.floor(x / segmentWidth);
     const m1 = mountain[i];
     const m2 = mountain[i + 1];
+
     if (!m1 || !m2) return vh();
 
     const t = (x % segmentWidth) / segmentWidth;
     const h = m1.height * (1 - t) + m2.height * t;
+
     return vh() - h;
   }
 
   function init(viewWidth, viewHeight) {
     vw = viewWidth;
     vh = viewHeight;
+
+    clouds = [];
     strikes = [];
     initMountain();
   }
 
   function reset() {
+    clouds = [];
     strikes = [];
     initMountain();
   }
 
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // mountain
-    for (const m of mountain) m.x -= groundSpeed;
+    // ===== CLOUDS =====
+    if (Math.random() < 0.02) spawnCloud();
+
+    for (const c of clouds) {
+      c.x -= groundSpeed * 0.3;
+    }
+
+    clouds = clouds.filter(c => c.x > -100);
+
+    // ===== MOUNTAIN =====
+    for (const m of mountain) {
+      m.x -= groundSpeed;
+    }
 
     if (mountain.length && mountain[0].x < -segmentWidth) {
       mountain.shift();
@@ -84,9 +111,16 @@ const obstacles = (() => {
       });
     }
 
-    // ground hit
+    // ===== GROUND HIT =====
     const groundY = getGroundY(dragon.x);
-    if (dragon.y + dragon.size / 2 > groundY) onHit();
+    if (dragon.y + dragon.size / 2 > groundY) {
+      onHit();
+    }
+
+    // ===== CEILING HIT =====
+    if (dragon.y - dragon.size / 2 < 20) {
+      onHit();
+    }
 
     // ===== LIGHTNING STRIKE HIT =====
     for (const s of strikes) {
@@ -103,33 +137,59 @@ const obstacles = (() => {
 
   function draw(ctx) {
 
-    // mountain
+    // ===== CEILING LIGHTNING =====
+    ctx.strokeStyle = 'cyan';
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    for (let x = 0; x < vw(); x += 20) {
+      ctx.lineTo(x, Math.random() * 10);
+    }
+    ctx.stroke();
+
+    // ===== CLOUDS =====
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    for (const c of clouds) {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.size * 0.6, 0, Math.PI * 2);
+      ctx.arc(c.x + c.size * 0.5, c.y + 5, c.size * 0.5, 0, Math.PI * 2);
+      ctx.arc(c.x - c.size * 0.5, c.y + 5, c.size * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // ===== MOUNTAIN =====
     ctx.fillStyle = '#5c3b1e';
     ctx.beginPath();
     ctx.moveTo(0, vh());
+
     for (const m of mountain) {
       ctx.lineTo(m.x, vh() - m.height);
     }
+
     ctx.lineTo(vw(), vh());
     ctx.closePath();
     ctx.fill();
 
-    // snow caps
+    // ===== SNOW CAPS =====
     ctx.fillStyle = 'white';
+
     for (let i = 1; i < mountain.length - 1; i++) {
       const m = mountain[i];
+
       if (m.height > 110) {
         const peakX = m.x;
         const peakY = vh() - m.height;
+
         ctx.beginPath();
         ctx.moveTo(peakX - 10, peakY + 10);
         ctx.lineTo(peakX, peakY);
         ctx.lineTo(peakX + 10, peakY + 10);
+        ctx.closePath();
         ctx.fill();
       }
     }
 
-    // ===== LIGHTNING DRAW =====
+    // ===== LIGHTNING STRIKES =====
     for (const s of strikes) {
       ctx.strokeStyle = 'cyan';
       ctx.lineWidth = 2;
@@ -143,6 +203,7 @@ const obstacles = (() => {
       for (const seg of s.segments) {
         ctx.moveTo(prev.x, prev.y);
         ctx.lineTo(s.x + seg.x, seg.y);
+
         prev = { x: s.x + seg.x, y: seg.y };
       }
 
@@ -151,6 +212,12 @@ const obstacles = (() => {
     }
   }
 
-  return { init, reset, update, draw, getGroundY };
+  return {
+    init,
+    reset,
+    update,
+    draw,
+    getGroundY
+  };
 
 })();
