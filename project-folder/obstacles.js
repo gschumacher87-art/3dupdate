@@ -11,9 +11,6 @@ let pipeTimer = 0;
 const lightningSpawnEvery = 220;
 let lightningTimer = 0;
 
-const lightningImg = new Image();
-lightningImg.src = 'project-folder/lightning.png';
-
 function init(viewWidth, viewHeight) {
   pipeWidth = Math.floor(viewWidth() * 0.08);
   pipeGap = Math.floor(viewHeight() * 0.25);
@@ -43,10 +40,7 @@ function addPipe(viewHeight, viewWidth) {
 function addLightning(viewWidth, viewHeight) {
   lightning.push({
     x: viewWidth(),
-    y: 0,
-    width: 80,
-    height: viewHeight(),
-    life: 60 // ✅ increased so it shows
+    life: 25
   });
 }
 
@@ -104,16 +98,13 @@ function update(viewHeight, viewWidth, dragonData, onScore, onHit) {
     const dragonLeft = dragonData.x - hitSize / 2;
     const dragonRight = dragonData.x + hitSize / 2;
 
-    const lightningLeft = l.x;
-    const lightningRight = l.x + l.width;
-
+    // simple vertical strike hit zone
     const hitLightning =
-      dragonRight > lightningLeft &&
-      dragonLeft < lightningRight;
+      dragonRight > l.x - 10 &&
+      dragonLeft < l.x + 10;
 
     if (hitLightning && l.life > 0) onHit();
 
-    // ✅ moved to end so it stays visible
     l.life--;
   }
 
@@ -123,10 +114,7 @@ function update(viewHeight, viewWidth, dragonData, onScore, onHit) {
   }
 
   // cleanup lightning
-  while (
-    lightning.length &&
-    (lightning[0].x + lightning[0].width < 0 || lightning[0].life <= 0)
-  ) {
+  while (lightning.length && (lightning[0].x < -50 || lightning[0].life <= 0)) {
     lightning.shift();
   }
 }
@@ -146,20 +134,30 @@ function draw(ctx, viewHeight) {
     );
   }
 
-  // ===== LIGHTNING =====
+  // ===== LIGHTNING (CODE DRAWN) =====
   for (const l of lightning) {
     if (l.life > 0) {
-      ctx.globalCompositeOperation = 'lighter';
+      let x = l.x;
+      let y = 0;
 
-      ctx.drawImage(
-        lightningImg,
-        l.x,
-        l.y,
-        l.width,
-        l.height
-      );
+      ctx.strokeStyle = 'cyan';
+      ctx.lineWidth = 2;
 
-      ctx.globalCompositeOperation = 'source-over';
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'cyan';
+
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+
+      for (let i = 0; i < 12; i++) {
+        y += viewHeight / 12;
+        x += (Math.random() - 0.5) * 20;
+        ctx.lineTo(x, y);
+      }
+
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
     }
   }
 }
