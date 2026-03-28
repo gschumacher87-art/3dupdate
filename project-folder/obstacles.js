@@ -39,16 +39,13 @@ const obstacles = (() => {
     return segments;
   }
 
-  // ===== MOUNTAIN (SMOOTH) =====
+  // ===== MOUNTAIN =====
   let mountain = [];
   const segmentWidth = 40;
 
   function randomHeight(prev = 100) {
     let next = prev + (Math.random() - 0.5) * 30;
-
-    // clamp heights
-    next = Math.max(60, Math.min(160, next));
-    return next;
+    return Math.max(60, Math.min(160, next));
   }
 
   function initMountain() {
@@ -76,21 +73,31 @@ const obstacles = (() => {
     return vh() - h;
   }
 
-  // ===== TREES =====
+  // ===== TREES (CLUSTERS + GAPS) =====
   let trees = [];
+  let treeCooldown = 0;
 
-  function spawnTree() {
-    const x = vw();
-    const groundY = getGroundY(x);
+  function spawnTreeCluster() {
+    const count = Math.floor(Math.random() * 3) + 2; // 2–4 trees
+    let baseX = vw();
 
-    const height = Math.random() * 60 + 80;
+    for (let i = 0; i < count; i++) {
+      const x = baseX + i * 50;
+      const groundY = getGroundY(x);
 
-    trees.push({
-      x,
-      width: 30,
-      height,
-      y: groundY - height
-    });
+      const height = Math.random() * 120 + 120; // TALLER TREES
+
+      trees.push({
+        x,
+        width: 40,
+        height,
+        y: groundY - height,
+        burning: false,
+        burnTime: 0
+      });
+    }
+
+    treeCooldown = Math.random() * 80 + 80; // BIG GAPS
   }
 
   // ===== INIT =====
@@ -116,7 +123,6 @@ const obstacles = (() => {
 
     // CLOUDS
     if (Math.random() < 0.02) spawnCloud();
-
     for (const c of clouds) c.x -= groundSpeed * 0.3;
     clouds = clouds.filter(c => c.x > -100);
 
@@ -132,11 +138,20 @@ const obstacles = (() => {
       });
     }
 
-    // TREES
-    if (Math.random() < 0.03) spawnTree();
+    // TREES (CLUSTERS)
+    treeCooldown--;
+    if (treeCooldown <= 0) spawnTreeCluster();
 
-    for (const t of trees) t.x -= groundSpeed;
-    trees = trees.filter(t => t.x > -50);
+    for (const t of trees) {
+      t.x -= groundSpeed;
+
+      // burning timer
+      if (t.burning) {
+        t.burnTime--;
+      }
+    }
+
+    trees = trees.filter(t => t.x > -50 && t.burnTime > -20);
 
     // GROUND COLLISION
     const groundY = getGroundY(dragon.x);
@@ -147,7 +162,8 @@ const obstacles = (() => {
       if (
         dragon.x + dragon.size / 2 > t.x &&
         dragon.x - dragon.size / 2 < t.x + t.width &&
-        dragon.y + dragon.size / 2 > t.y
+        dragon.y + dragon.size / 2 > t.y &&
+        !t.burning // safe if burning
       ) {
         onHit();
       }
@@ -156,17 +172,47 @@ const obstacles = (() => {
     // CEILING
     if (dragon.y - dragon.size / 2 < 30) onHit();
 
-    // LIGHTNING (visual only)
+    // LIGHTNING
     for (const s of strikes) s.life--;
     strikes = strikes.filter(s => s.life > 0);
-
     if (Math.random() < 0.02) spawnStrike();
+
+    // ===== FIREBALL INTERACTION =====
+    const fireballs = dragon.getFireballs();
+
+    for (const f of fireballs) {
+      for (const t of trees) {
+
+        if (t.burning) continue;
+
+        if (
+          f.x > t.x &&
+          f.x < t.x + t.width &&
+          f.y > t.y
+        ) {
+          t.burning = true;
+          t.burnTime = 30;
+          f.dead = true;
+
+          // 🔥 burn enemies nearby
+          if (window.enemies) {
+            for (const e of enemies.getList()) {
+              if (
+                Math.abs(e.x - t.x) < 40 &&
+                Math.abs(e.y - t.y) < t.height
+              ) {
+                e.dead = true;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   // ===== DRAW =====
   function draw(ctx) {
 
-    // CEILING
     const flicker = Math.random() * 30;
 
     ctx.fillStyle = `rgb(${70 + flicker}, ${70 + flicker}, ${70 + flicker})`;
@@ -176,14 +222,10 @@ const obstacles = (() => {
 
     ctx.beginPath();
     ctx.moveTo(0, 30);
-
     for (let x = 0; x <= vw(); x += 20) {
       const y = 30 + Math.sin(x * 0.05 + Date.now() * 0.005) * 5;
       ctx.lineTo(x, y);
     }
-
-    ctx.lineTo(vw(), 0);
-    ctx.lineTo(0, 0);
     ctx.closePath();
     ctx.fill();
 
@@ -200,17 +242,13 @@ const obstacles = (() => {
       ctx.fill();
     }
 
-    // MOUNTAIN (SMOOTH CURVE LOOK)
+    // MOUNTAIN
     ctx.fillStyle = '#5c3b1e';
     ctx.beginPath();
     ctx.moveTo(0, vh());
-
-    for (let i = 0; i < mountain.length; i++) {
-      const m = mountain[i];
+    for (const m of mountain) {
       ctx.lineTo(m.x, vh() - m.height);
     }
-
-    ctx.lineTo(vw(), vh());
     ctx.closePath();
     ctx.fill();
 
@@ -218,23 +256,16 @@ const obstacles = (() => {
     for (const t of trees) {
 
       // trunk
-      ctx.fillStyle = '#5b3a1e';
+      ctx.fillStyle = t.burning ? 'orange' : '#5b3a1e';
       ctx.fillRect(t.x + t.width / 3, t.y + t.height - 20, t.width / 3, 20);
 
-      // leaves (layered triangles)
-      ctx.fillStyle = 'green';
+      // leaves
+      ctx.fillStyle = t.burning ? 'red' : 'green';
 
       ctx.beginPath();
-      ctx.moveTo(t.x, t.y + 20);
+      ctx.moveTo(t.x, t.y + 30);
       ctx.lineTo(t.x + t.width / 2, t.y);
-      ctx.lineTo(t.x + t.width, t.y + 20);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(t.x, t.y + 40);
-      ctx.lineTo(t.x + t.width / 2, t.y + 10);
-      ctx.lineTo(t.x + t.width, t.y + 40);
+      ctx.lineTo(t.x + t.width, t.y + 30);
       ctx.closePath();
       ctx.fill();
     }
