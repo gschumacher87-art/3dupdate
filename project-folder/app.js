@@ -28,7 +28,7 @@ let gameOver = false;
 let score = 0;
 
 // ===== TIME TRACKING =====
-let lastTime = 0;
+let lastTime = performance.now();
 
 // ===== INPUT =====
 function flap() {
@@ -45,7 +45,8 @@ window.addEventListener('keydown', e => {
 function resetGame() {
   score = 0;
   gameOver = false;
-  lastTime = 0;
+
+  lastTime = performance.now();
 
   dragon.reset(viewWidth, viewHeight);
   obstacles.reset();
@@ -62,8 +63,14 @@ dragon.img.onload = () => {
 // ===== LOOP =====
 function loop(time) {
 
-  // ===== DELTA TIME =====
   const deltaTime = time - lastTime;
+
+  // prevent big jump after reset
+  if (deltaTime > 1000) {
+    lastTime = time;
+    return requestAnimationFrame(loop);
+  }
+
   lastTime = time;
 
   ctx.fillStyle = 'black';
@@ -80,7 +87,7 @@ function loop(time) {
       viewHeight,
       viewWidth,
       dragon.get(),
-      () => {}, // removed score++
+      () => {},
       () => gameOver = true
     );
 
