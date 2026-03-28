@@ -10,38 +10,39 @@ const enemies = (() => {
     bullets = [];
   }
 
-  // ===== SPAWN IN TREE GAPS =====
+  // ===== SPAWN IN CLEAN GAPS ONLY =====
   function spawn(viewWidth) {
 
     const trees = obstacles.getTrees ? obstacles.getTrees() : [];
-
     if (!trees || trees.length < 2) return;
 
-    // find a usable gap
     for (let i = 0; i < trees.length - 1; i++) {
 
       const t1 = trees[i];
       const t2 = trees[i + 1];
 
+      if (!t1 || !t2) continue;
+
       const gapStart = t1.x + t1.width;
       const gapEnd = t2.x;
       const gapSize = gapEnd - gapStart;
 
-      if (gapSize > 80) {
+      // 👇 ONLY LARGE CLEAN GAPS
+      if (gapSize > 120) {
 
         const x = gapStart + gapSize / 2;
 
         const groundY = obstacles.getGroundY(x);
 
-        // spawn in air (inside gap)
-        const y = groundY - (Math.random() * 120 + 60);
+        // 👇 LOCK HEIGHT INSIDE GAP (NOT RANDOM CHAOS)
+        const y = groundY - (80 + gapSize * 0.3);
 
         list.push({
           x,
           y,
           size: 20,
           dead: false,
-          shootTimer: 40
+          shootTimer: 60
         });
 
         return;
@@ -52,7 +53,7 @@ const enemies = (() => {
   function update(viewWidth, viewHeight, dragon, onHit) {
 
     // ===== SPAWN =====
-    if (Math.random() < 0.02) spawn(viewWidth);
+    if (Math.random() < 0.015) spawn(viewWidth);
 
     // ===== ENEMIES =====
     for (const e of list) {
@@ -60,26 +61,27 @@ const enemies = (() => {
 
       e.x -= 3;
 
-      // keep them floating (not snapping to ground)
       const groundY = obstacles.getGroundY(e.x);
-      const maxY = groundY - 40;
+      const ceiling = 40;
+      const floor = groundY - 40;
 
-      if (e.y > maxY) e.y = maxY;
+      // 👇 KEEP THEM IN PLAYABLE ZONE
+      if (e.y > floor) e.y = floor;
+      if (e.y < ceiling) e.y = ceiling;
 
       e.shootTimer--;
       if (e.shootTimer <= 0) {
-        e.shootTimer = 60;
+        e.shootTimer = 80;
 
         bullets.push({
           x: e.x,
           y: e.y,
           vx: -4,
-          vy: (dragon.y - e.y) * 0.05
+          vy: (dragon.y - e.y) * 0.04
         });
       }
     }
 
-    // REMOVE DEAD + OFFSCREEN
     list = list.filter(e => e && !e.dead && e.x > -50);
 
     // ===== BULLETS =====
@@ -100,7 +102,6 @@ const enemies = (() => {
 
   function draw(ctx) {
 
-    // ===== ENEMIES =====
     ctx.strokeStyle = '#ffcc00';
     ctx.lineWidth = 2;
 
@@ -124,7 +125,6 @@ const enemies = (() => {
       ctx.stroke();
     }
 
-    // ===== BULLETS =====
     ctx.fillStyle = 'red';
     for (const b of bullets) {
       ctx.beginPath();
