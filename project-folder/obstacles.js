@@ -50,15 +50,31 @@ const obstacles = (() => {
     return segments;
   }
 
+  // ===== ENEMIES =====
+  let enemies = [];
+  let bullets = [];
+
+  function spawnEnemy() {
+    const x = vw();
+    const y = getGroundY(x);
+
+    enemies.push({
+      x,
+      y,
+      size: 12,
+      shootTimer: Math.random() * 60 + 30
+    });
+  }
+
   // ===== MOUNTAIN =====
   let mountain = [];
   const segmentWidth = 40;
 
   function randomHeight() {
     const r = Math.random();
-    if (r < 0.6) return Math.random() * 40 + 60;   // small
-    if (r < 0.9) return Math.random() * 60 + 80;   // medium
-    return Math.random() * 80 + 120;               // tall (rare)
+    if (r < 0.6) return Math.random() * 40 + 60;
+    if (r < 0.9) return Math.random() * 60 + 80;
+    return Math.random() * 80 + 120;
   }
 
   function initMountain() {
@@ -94,26 +110,29 @@ const obstacles = (() => {
 
     clouds = [];
     lightning = [];
+    enemies = [];
+    bullets = [];
     initMountain();
   }
 
   function reset() {
     clouds = [];
     lightning = [];
+    enemies = [];
+    bullets = [];
     initMountain();
   }
 
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // ===== MOUNTAIN SCROLL (UNCHANGED) =====
+    // ===== MOUNTAIN =====
     for (const m of mountain) {
       m.x -= groundSpeed;
     }
 
     if (mountain.length && mountain[0].x < -segmentWidth) {
       mountain.shift();
-
       mountain.push({
         x: mountain[mountain.length - 1].x + segmentWidth,
         height: randomHeight()
@@ -128,6 +147,45 @@ const obstacles = (() => {
     }
 
     clouds = clouds.filter(c => c.x > -100);
+
+    // ===== ENEMIES =====
+    if (Math.random() < 0.01) spawnEnemy();
+
+    for (const e of enemies) {
+      e.x -= groundSpeed;
+
+      e.y = getGroundY(e.x);
+
+      e.shootTimer--;
+
+      if (e.shootTimer <= 0) {
+        e.shootTimer = 60;
+
+        bullets.push({
+          x: e.x,
+          y: e.y - 10,
+          vx: -4,
+          vy: (dragon.y - e.y) * 0.05
+        });
+      }
+    }
+
+    enemies = enemies.filter(e => e.x > -50);
+
+    // ===== BULLETS =====
+    for (const b of bullets) {
+      b.x += b.vx;
+      b.y += b.vy;
+
+      const dx = b.x - dragon.x;
+      const dy = b.y - dragon.y;
+
+      if (Math.sqrt(dx * dx + dy * dy) < dragon.size / 2) {
+        onHit();
+      }
+    }
+
+    bullets = bullets.filter(b => b.x > -50);
 
     // ===== GROUND COLLISION =====
     const groundY = getGroundY(dragon.x);
@@ -150,7 +208,7 @@ const obstacles = (() => {
   // ===== DRAW =====
   function draw(ctx) {
 
-    // ===== CLOUDS =====
+    // clouds
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     for (const c of clouds) {
       ctx.beginPath();
@@ -160,59 +218,46 @@ const obstacles = (() => {
       ctx.fill();
     }
 
-    // ===== MOUNTAIN BASE (BROWN) =====
+    // mountain base
     ctx.fillStyle = '#5c3b1e';
-
     ctx.beginPath();
     ctx.moveTo(0, vh());
-
     for (const m of mountain) {
       ctx.lineTo(m.x, vh() - m.height);
     }
-
     ctx.lineTo(vw(), vh());
     ctx.closePath();
     ctx.fill();
 
-    // ===== SHADOW (LEFT SIDE) =====
-    ctx.fillStyle = '#3e2814';
-
-    for (let i = 0; i < mountain.length - 1; i++) {
-      const m1 = mountain[i];
-      const m2 = mountain[i + 1];
-
-      const peakX = m1.x;
-      const peakY = vh() - m1.height;
+    // enemies (stick figures)
+    ctx.strokeStyle = 'black';
+    for (const e of enemies) {
+      const y = e.y;
 
       ctx.beginPath();
-      ctx.moveTo(peakX, peakY);
-      ctx.lineTo(m2.x, vh() - m2.height);
-      ctx.lineTo(m2.x, vh());
-      ctx.lineTo(peakX, vh());
-      ctx.closePath();
+      ctx.arc(e.x, y - 12, 4, 0, Math.PI * 2); // head
+      ctx.moveTo(e.x, y - 8);
+      ctx.lineTo(e.x, y); // body
+      ctx.moveTo(e.x, y - 5);
+      ctx.lineTo(e.x - 5, y - 2); // arm
+      ctx.moveTo(e.x, y - 5);
+      ctx.lineTo(e.x + 5, y - 2); // arm
+      ctx.moveTo(e.x, y);
+      ctx.lineTo(e.x - 4, y + 6); // leg
+      ctx.moveTo(e.x, y);
+      ctx.lineTo(e.x + 4, y + 6); // leg
+      ctx.stroke();
+    }
+
+    // bullets
+    ctx.fillStyle = 'red';
+    for (const b of bullets) {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // ===== SNOW CAPS =====
-    ctx.fillStyle = 'white';
-
-    for (let i = 1; i < mountain.length - 1; i++) {
-      const m = mountain[i];
-
-      if (m.height > 110) {
-        const peakX = m.x;
-        const peakY = vh() - m.height;
-
-        ctx.beginPath();
-        ctx.moveTo(peakX - 10, peakY + 10);
-        ctx.lineTo(peakX, peakY);
-        ctx.lineTo(peakX + 10, peakY + 10);
-        ctx.closePath();
-        ctx.fill();
-      }
-    }
-
-    // ===== LIGHTNING =====
+    // lightning
     for (const l of lightning) {
       drawBolt(ctx, l);
     }
@@ -239,22 +284,6 @@ const obstacles = (() => {
       ctx.lineTo(l.x + jitterX, jitterY);
 
       prev = { x: l.x + jitterX, y: jitterY };
-    }
-
-    ctx.stroke();
-
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 1;
-
-    ctx.beginPath();
-
-    prev = { x: l.x, y: 0 };
-
-    for (const s of l.segments) {
-      ctx.moveTo(prev.x, prev.y);
-      ctx.lineTo(l.x + s.x, s.y);
-
-      prev = { x: l.x + s.x, y: s.y };
     }
 
     ctx.stroke();
