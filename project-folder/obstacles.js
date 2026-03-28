@@ -15,7 +15,7 @@ const obstacles = (() => {
     });
   }
 
-  // ===== LIGHTNING STRIKES =====
+  // ===== LIGHTNING =====
   let strikes = [];
 
   function spawnStrike() {
@@ -39,22 +39,26 @@ const obstacles = (() => {
     return segments;
   }
 
-  // ===== MOUNTAIN =====
+  // ===== MOUNTAIN (SMOOTH) =====
   let mountain = [];
   const segmentWidth = 40;
 
-  function randomHeight() {
-    const r = Math.random();
-    if (r < 0.6) return Math.random() * 40 + 60;
-    if (r < 0.9) return Math.random() * 60 + 80;
-    return Math.random() * 80 + 120;
+  function randomHeight(prev = 100) {
+    let next = prev + (Math.random() - 0.5) * 30;
+
+    // clamp heights
+    next = Math.max(60, Math.min(160, next));
+    return next;
   }
 
   function initMountain() {
     mountain = [];
     let x = 0;
+    let lastHeight = 100;
+
     while (x < vw() + 200) {
-      mountain.push({ x, height: randomHeight() });
+      lastHeight = randomHeight(lastHeight);
+      mountain.push({ x, height: lastHeight });
       x += segmentWidth;
     }
   }
@@ -72,65 +76,97 @@ const obstacles = (() => {
     return vh() - h;
   }
 
+  // ===== TREES =====
+  let trees = [];
+
+  function spawnTree() {
+    const x = vw();
+    const groundY = getGroundY(x);
+
+    const height = Math.random() * 60 + 80;
+
+    trees.push({
+      x,
+      width: 30,
+      height,
+      y: groundY - height
+    });
+  }
+
+  // ===== INIT =====
   function init(viewWidth, viewHeight) {
     vw = viewWidth;
     vh = viewHeight;
 
     clouds = [];
     strikes = [];
+    trees = [];
     initMountain();
   }
 
   function reset() {
     clouds = [];
     strikes = [];
+    trees = [];
     initMountain();
   }
 
+  // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // ===== CLOUDS =====
+    // CLOUDS
     if (Math.random() < 0.02) spawnCloud();
 
-    for (const c of clouds) {
-      c.x -= groundSpeed * 0.3;
-    }
-
+    for (const c of clouds) c.x -= groundSpeed * 0.3;
     clouds = clouds.filter(c => c.x > -100);
 
-    // ===== MOUNTAIN =====
-    for (const m of mountain) {
-      m.x -= groundSpeed;
-    }
+    // MOUNTAIN
+    for (const m of mountain) m.x -= groundSpeed;
 
     if (mountain.length && mountain[0].x < -segmentWidth) {
       mountain.shift();
+      const last = mountain[mountain.length - 1];
       mountain.push({
-        x: mountain[mountain.length - 1].x + segmentWidth,
-        height: randomHeight()
+        x: last.x + segmentWidth,
+        height: randomHeight(last.height)
       });
     }
 
-    // ===== GROUND HIT =====
+    // TREES
+    if (Math.random() < 0.03) spawnTree();
+
+    for (const t of trees) t.x -= groundSpeed;
+    trees = trees.filter(t => t.x > -50);
+
+    // GROUND COLLISION
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) onHit();
 
-    // ===== CEILING HIT =====
-    if (dragon.y - dragon.size / 2 < 30) onHit();
-
-    // ===== LIGHTNING (VISUAL ONLY) =====
-    for (const s of strikes) {
-      s.life--;
+    // TREE COLLISION
+    for (const t of trees) {
+      if (
+        dragon.x + dragon.size / 2 > t.x &&
+        dragon.x - dragon.size / 2 < t.x + t.width &&
+        dragon.y + dragon.size / 2 > t.y
+      ) {
+        onHit();
+      }
     }
 
+    // CEILING
+    if (dragon.y - dragon.size / 2 < 30) onHit();
+
+    // LIGHTNING (visual only)
+    for (const s of strikes) s.life--;
     strikes = strikes.filter(s => s.life > 0);
 
     if (Math.random() < 0.02) spawnStrike();
   }
 
+  // ===== DRAW =====
   function draw(ctx) {
 
-    // ===== CLOUD CEILING =====
+    // CEILING
     const flicker = Math.random() * 30;
 
     ctx.fillStyle = `rgb(${70 + flicker}, ${70 + flicker}, ${70 + flicker})`;
@@ -142,7 +178,7 @@ const obstacles = (() => {
     ctx.moveTo(0, 30);
 
     for (let x = 0; x <= vw(); x += 20) {
-      const y = 30 + Math.sin(x * 0.05 + Date.now() * 0.005) * 5 + Math.random() * 5;
+      const y = 30 + Math.sin(x * 0.05 + Date.now() * 0.005) * 5;
       ctx.lineTo(x, y);
     }
 
@@ -154,7 +190,7 @@ const obstacles = (() => {
     ctx.fillStyle = `rgba(0,0,0,0.2)`;
     ctx.fillRect(0, 0, vw(), 15);
 
-    // ===== CLOUDS =====
+    // CLOUDS
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     for (const c of clouds) {
       ctx.beginPath();
@@ -164,12 +200,13 @@ const obstacles = (() => {
       ctx.fill();
     }
 
-    // ===== MOUNTAIN =====
+    // MOUNTAIN (SMOOTH CURVE LOOK)
     ctx.fillStyle = '#5c3b1e';
     ctx.beginPath();
     ctx.moveTo(0, vh());
 
-    for (const m of mountain) {
+    for (let i = 0; i < mountain.length; i++) {
+      const m = mountain[i];
       ctx.lineTo(m.x, vh() - m.height);
     }
 
@@ -177,25 +214,32 @@ const obstacles = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // ===== SNOW CAPS =====
-    ctx.fillStyle = 'white';
-    for (let i = 1; i < mountain.length - 1; i++) {
-      const m = mountain[i];
+    // TREES
+    for (const t of trees) {
 
-      if (m.height > 110) {
-        const peakX = m.x;
-        const peakY = vh() - m.height;
+      // trunk
+      ctx.fillStyle = '#5b3a1e';
+      ctx.fillRect(t.x + t.width / 3, t.y + t.height - 20, t.width / 3, 20);
 
-        ctx.beginPath();
-        ctx.moveTo(peakX - 10, peakY + 10);
-        ctx.lineTo(peakX, peakY);
-        ctx.lineTo(peakX + 10, peakY + 10);
-        ctx.closePath();
-        ctx.fill();
-      }
+      // leaves (layered triangles)
+      ctx.fillStyle = 'green';
+
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y + 20);
+      ctx.lineTo(t.x + t.width / 2, t.y);
+      ctx.lineTo(t.x + t.width, t.y + 20);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y + 40);
+      ctx.lineTo(t.x + t.width / 2, t.y + 10);
+      ctx.lineTo(t.x + t.width, t.y + 40);
+      ctx.closePath();
+      ctx.fill();
     }
 
-    // ===== LIGHTNING =====
+    // LIGHTNING
     for (const s of strikes) {
       ctx.strokeStyle = 'cyan';
       ctx.lineWidth = 2;
@@ -203,7 +247,6 @@ const obstacles = (() => {
       ctx.shadowColor = 'cyan';
 
       ctx.beginPath();
-
       let prev = { x: s.x, y: 0 };
 
       for (const seg of s.segments) {
