@@ -2,15 +2,19 @@ const obstacles = (() => {
 
   let vw, vh;
 
+  // ===== SETTINGS =====
+  const groundSpeed = 3;
+  const cloudSpeedFactor = 0.3;
+  const lightningSpeedFactor = 1.5;
+
   // ===== CLOUDS =====
   let clouds = [];
 
   function spawnCloud() {
     clouds.push({
       x: vw(),
-      y: Math.random() * vh() * 0.5,
-      size: Math.random() * 40 + 40,
-      speed: Math.random() * 0.5 + 0.5
+      y: Math.random() * vh() * 0.4,
+      size: Math.random() * 40 + 40
     });
   }
 
@@ -27,21 +31,18 @@ const obstacles = (() => {
 
   function generateBolt() {
     const segments = [];
-    const step = 20;
-
-    let x = 0;
-    let y = 0;
+    let x = 0, y = 0;
 
     while (y < vh()) {
       x += (Math.random() - 0.5) * 40;
-      y += step;
+      y += 20;
 
       segments.push({ x, y });
 
       if (Math.random() < 0.2) {
         segments.push({
           x: x + (Math.random() - 0.5) * 50,
-          y: y + step
+          y: y + 20
         });
       }
     }
@@ -49,7 +50,7 @@ const obstacles = (() => {
     return segments;
   }
 
-  // ===== MOUNTAIN (STATIC) =====
+  // ===== MOUNTAIN =====
   let mountain = [];
   const segmentWidth = 40;
 
@@ -98,13 +99,26 @@ const obstacles = (() => {
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // ===== CLOUDS =====
-    if (Math.random() < 0.02) {
-      spawnCloud();
+    // ===== MOUNTAIN SCROLL (CORRECT WAY) =====
+    for (const m of mountain) {
+      m.x -= groundSpeed;
     }
 
+    // recycle terrain smoothly
+    if (mountain.length && mountain[0].x < -segmentWidth) {
+      mountain.shift();
+
+      mountain.push({
+        x: mountain[mountain.length - 1].x + segmentWidth,
+        height: Math.random() * 80 + 60
+      });
+    }
+
+    // ===== CLOUDS (SLOWER = DEPTH) =====
+    if (Math.random() < 0.02) spawnCloud();
+
     for (const c of clouds) {
-      c.x -= c.speed;
+      c.x -= groundSpeed * cloudSpeedFactor;
     }
 
     clouds = clouds.filter(c => c.x > -100);
@@ -116,13 +130,11 @@ const obstacles = (() => {
       onHit();
     }
 
-    // ===== LIGHTNING =====
-    if (Math.random() < 0.02) {
-      spawnLightning();
-    }
+    // ===== LIGHTNING (FASTER = FOREGROUND) =====
+    if (Math.random() < 0.02) spawnLightning();
 
     for (const l of lightning) {
-      l.x -= 4.5;
+      l.x -= groundSpeed * lightningSpeedFactor;
       l.life--;
     }
 
@@ -134,7 +146,6 @@ const obstacles = (() => {
 
     // ===== CLOUDS =====
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
-
     for (const c of clouds) {
       ctx.beginPath();
       ctx.arc(c.x, c.y, c.size * 0.6, 0, Math.PI * 2);
@@ -143,7 +154,7 @@ const obstacles = (() => {
       ctx.fill();
     }
 
-    // ===== MOUNTAIN (STATIC) =====
+    // ===== MOUNTAIN =====
     ctx.fillStyle = 'darkgreen';
 
     ctx.beginPath();
