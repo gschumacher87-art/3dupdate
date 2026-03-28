@@ -89,7 +89,7 @@ const obstacles = (() => {
 
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // ===== CLOUDS =====
+    // clouds
     if (Math.random() < 0.02) spawnCloud();
 
     for (const c of clouds) {
@@ -98,7 +98,7 @@ const obstacles = (() => {
 
     clouds = clouds.filter(c => c.x > -100);
 
-    // ===== MOUNTAIN =====
+    // mountain
     for (const m of mountain) {
       m.x -= groundSpeed;
     }
@@ -111,22 +111,16 @@ const obstacles = (() => {
       });
     }
 
-    // ===== GROUND HIT =====
+    // ground hit
     const groundY = getGroundY(dragon.x);
-    if (dragon.y + dragon.size / 2 > groundY) {
-      onHit();
-    }
+    if (dragon.y + dragon.size / 2 > groundY) onHit();
 
-    // ===== CLOUD CEILING HIT =====
-    if (dragon.y - dragon.size / 2 < 25) {
-      onHit();
-    }
+    // ===== CEILING HIT =====
+    if (dragon.y - dragon.size / 2 < 30) onHit();
 
-    // ===== LIGHTNING STRIKE HIT =====
+    // lightning strike hit
     for (const s of strikes) {
-      if (Math.abs(dragon.x - s.x) < 20) {
-        onHit();
-      }
+      if (Math.abs(dragon.x - s.x) < 20) onHit();
       s.life--;
     }
 
@@ -137,10 +131,32 @@ const obstacles = (() => {
 
   function draw(ctx) {
 
-    // ===== GREY FLICKER CLOUD CEILING =====
-    const flicker = Math.random() * 40;
-    ctx.fillStyle = `rgb(${80 + flicker}, ${80 + flicker}, ${80 + flicker})`;
-    ctx.fillRect(0, 0, vw(), 25);
+    // ===== DETAILED CLOUD CEILING =====
+    const flicker = Math.random() * 30;
+
+    // base layer
+    ctx.fillStyle = `rgb(${70 + flicker}, ${70 + flicker}, ${70 + flicker})`;
+    ctx.fillRect(0, 0, vw(), 30);
+
+    // jagged underside (makes it feel like obstacle)
+    ctx.fillStyle = `rgb(${90 + flicker}, ${90 + flicker}, ${90 + flicker})`;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 30);
+
+    for (let x = 0; x <= vw(); x += 20) {
+      const y = 30 + Math.sin(x * 0.05 + Date.now() * 0.005) * 5 + Math.random() * 5;
+      ctx.lineTo(x, y);
+    }
+
+    ctx.lineTo(vw(), 0);
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // darker shadow layer for depth
+    ctx.fillStyle = `rgba(0,0,0,0.2)`;
+    ctx.fillRect(0, 0, vw(), 15);
 
     // ===== CLOUDS =====
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
@@ -167,7 +183,6 @@ const obstacles = (() => {
 
     // ===== SNOW CAPS =====
     ctx.fillStyle = 'white';
-
     for (let i = 1; i < mountain.length - 1; i++) {
       const m = mountain[i];
 
@@ -198,7 +213,6 @@ const obstacles = (() => {
       for (const seg of s.segments) {
         ctx.moveTo(prev.x, prev.y);
         ctx.lineTo(s.x + seg.x, seg.y);
-
         prev = { x: s.x + seg.x, y: seg.y };
       }
 
