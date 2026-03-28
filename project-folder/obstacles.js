@@ -73,31 +73,40 @@ const obstacles = (() => {
     return vh() - h;
   }
 
-  // ===== TREES =====
+  // ===== TREES (FIXED GAPS) =====
   let trees = [];
   let treeCooldown = 0;
 
-  function spawnTreeCluster() {
-    const count = Math.floor(Math.random() * 3) + 2;
-    let baseX = vw();
+  function spawnTreePair() {
+    const baseX = vw();
 
-    for (let i = 0; i < count; i++) {
-      const x = baseX + i * 50;
-      const groundY = getGroundY(x);
+    const gapSize = 120 + Math.random() * 60; // BIG GAP
+    const groundY = getGroundY(baseX);
 
-      const height = Math.random() * 120 + 120;
+    const height1 = Math.random() * 100 + 80;
+    const height2 = Math.random() * 100 + 80;
 
-      trees.push({
-        x,
-        width: 40,
-        height,
-        y: groundY - height,
-        burning: false,
-        burnTime: 0
-      });
-    }
+    // LEFT TREE
+    trees.push({
+      x: baseX,
+      width: 40,
+      height: height1,
+      y: groundY - height1,
+      burning: false,
+      burnTime: 0
+    });
 
-    treeCooldown = Math.random() * 80 + 80;
+    // RIGHT TREE (after gap)
+    trees.push({
+      x: baseX + gapSize,
+      width: 40,
+      height: height2,
+      y: groundY - height2,
+      burning: false,
+      burnTime: 0
+    });
+
+    treeCooldown = 140 + Math.random() * 80;
   }
 
   // ===== INIT =====
@@ -138,9 +147,9 @@ const obstacles = (() => {
       });
     }
 
-    // TREES
+    // TREES (PAIRS WITH GAP)
     treeCooldown--;
-    if (treeCooldown <= 0) spawnTreeCluster();
+    if (treeCooldown <= 0) spawnTreePair();
 
     for (const t of trees) {
       t.x -= groundSpeed;
@@ -173,7 +182,7 @@ const obstacles = (() => {
     strikes = strikes.filter(s => s.life > 0);
     if (Math.random() < 0.02) spawnStrike();
 
-    // ===== FIXED FIREBALL INTERACTION =====
+    // FIREBALLS
     const fireballs = window.dragon.getFireballs();
 
     for (const f of fireballs) {
