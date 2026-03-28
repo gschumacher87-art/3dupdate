@@ -38,12 +38,18 @@ function update() {
   y = Math.round(y);
   velocity = Math.round(velocity * 1000) / 1000;
 
-  // fire cooldown
   if (fireCooldown > 0) fireCooldown--;
 
-  // fireballs
   for (const f of fireballs) {
     f.x += 8;
+
+    // add trail point
+    f.trail.push({ x: f.x, y: f.y });
+
+    // limit trail length
+    if (f.trail.length > 5) {
+      f.trail.shift();
+    }
   }
 
   fireballs = fireballs.filter(f => f.x < window.innerWidth + 50);
@@ -65,7 +71,8 @@ function fire() {
 
   fireballs.push({
     x: x + size / 2,
-    y: y
+    y: y,
+    trail: []
   });
 }
 
@@ -76,7 +83,20 @@ function draw(ctx) {
 
   ctx.drawImage(dragonImg, drawX, drawY, size, size);
 
-  // fireballs
+  // ===== FIRE TRAIL =====
+  for (const f of fireballs) {
+    for (let i = 0; i < f.trail.length; i++) {
+      const t = f.trail[i];
+      const alpha = i / f.trail.length;
+
+      ctx.fillStyle = `rgba(255,150,0,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, 4 * alpha, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // ===== FIREBALL =====
   ctx.fillStyle = 'orange';
   for (const f of fireballs) {
     ctx.beginPath();
