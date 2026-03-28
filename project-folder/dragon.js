@@ -31,7 +31,7 @@ function reset(viewWidth, viewHeight) {
 }
 
 // ===== UPDATE =====
-function update() {
+function update(viewWidth, viewHeight, enemies) {
   velocity += gravity;
   y += velocity;
 
@@ -41,18 +41,32 @@ function update() {
   if (fireCooldown > 0) fireCooldown--;
 
   for (const f of fireballs) {
-    f.x += 8;
+    f.x += f.vx;
 
-    // add trail point
+    // ===== TRAIL =====
     f.trail.push({ x: f.x, y: f.y });
+    if (f.trail.length > 5) f.trail.shift();
 
-    // limit trail length
-    if (f.trail.length > 5) {
-      f.trail.shift();
+    // ===== HIT ENEMIES =====
+    for (const e of enemies) {
+      if (e.dead) continue;
+
+      if (
+        f.x < e.x + e.size &&
+        f.x + f.size > e.x &&
+        f.y < e.y + e.size &&
+        f.y + f.size > e.y
+      ) {
+        e.dead = true;
+        f.dead = true;
+      }
     }
   }
 
-  fireballs = fireballs.filter(f => f.x < window.innerWidth + 50);
+  fireballs = fireballs.filter(f =>
+    !f.dead &&
+    f.x < viewWidth() + 50
+  );
 }
 
 // ===== INPUT =====
@@ -72,7 +86,10 @@ function fire() {
   fireballs.push({
     x: x + size / 2,
     y: y,
-    trail: []
+    vx: 8,
+    size: 10,
+    trail: [],
+    dead: false
   });
 }
 
@@ -97,10 +114,19 @@ function draw(ctx) {
   }
 
   // ===== FIREBALL =====
-  ctx.fillStyle = 'orange';
   for (const f of fireballs) {
+    const gradient = ctx.createRadialGradient(
+      f.x, f.y, 2,
+      f.x, f.y, f.size
+    );
+
+    gradient.addColorStop(0, 'yellow');
+    gradient.addColorStop(0.5, 'orange');
+    gradient.addColorStop(1, 'red');
+
+    ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
+    ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
     ctx.fill();
   }
 }
