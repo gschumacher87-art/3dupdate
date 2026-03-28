@@ -7,6 +7,9 @@ const obstacles = (() => {
 
   let vw, vh;
 
+  // ===== GROUND HEIGHT =====
+  const groundHeight = 120;
+
   // ===== LIGHTNING =====
   let lightning = [];
 
@@ -44,7 +47,7 @@ const obstacles = (() => {
 
   // ===== MOUNTAIN =====
   let mountain = [];
-  let mountainOffset = 0;
+  let offset = 0;
 
   function initMountain() {
     mountain = [];
@@ -53,7 +56,7 @@ const obstacles = (() => {
     while (x < vw() + 200) {
       mountain.push({
         x,
-        height: Math.random() * 120 + 60
+        height: Math.random() * 60 + 40
       });
       x += 40;
     }
@@ -76,7 +79,7 @@ const obstacles = (() => {
 
   // ===== CREATE PIPE =====
   function createPipe() {
-    const topHeight = Math.random() * (vh() - pipeGap - 100) + 50;
+    const topHeight = Math.random() * (vh() - pipeGap - groundHeight - 100) + 50;
 
     return {
       x: vw(),
@@ -105,9 +108,15 @@ const obstacles = (() => {
                   dragon.x - dragon.size / 2 < p.x + pipeWidth;
 
       const hitTop = dragon.y - dragon.size / 2 < p.topHeight;
-      const hitBottom = dragon.y + dragon.size / 2 > p.topHeight + pipeGap;
 
-      if (inX && (hitTop || hitBottom)) {
+      // ✅ NEW: ground collision instead of fake bottom pipe
+      const hitGround = dragon.y + dragon.size / 2 > vh() - groundHeight;
+
+      if (inX && hitTop) {
+        onHit();
+      }
+
+      if (hitGround) {
         onHit();
       }
     }
@@ -116,15 +125,15 @@ const obstacles = (() => {
       pipes.shift();
     }
 
-    // ===== MOUNTAIN UPDATE =====
-    mountainOffset -= speed;
+    // ===== MOUNTAIN SCROLL =====
+    offset -= speed;
 
-    if (mountainOffset <= -40) {
-      mountainOffset = 0;
+    if (offset <= -40) {
+      offset = 0;
       mountain.shift();
       mountain.push({
         x: mountain[mountain.length - 1].x + 40,
-        height: Math.random() * 120 + 60
+        height: Math.random() * 60 + 40
       });
     }
 
@@ -150,7 +159,7 @@ const obstacles = (() => {
       ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
     }
 
-    // ===== MOUNTAIN RANGE =====
+    // ===== MOUNTAIN (GROUND) =====
     ctx.fillStyle = 'darkgreen';
 
     ctx.beginPath();
@@ -158,7 +167,7 @@ const obstacles = (() => {
 
     for (let i = 0; i < mountain.length; i++) {
       const m = mountain[i];
-      const x = m.x + mountainOffset;
+      const x = m.x + offset;
       const y = vh() - m.height;
 
       ctx.lineTo(x, y);
