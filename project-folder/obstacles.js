@@ -1,11 +1,18 @@
 const obstacles = (() => {
 
-  let pipes = [];
-  let pipeWidth = 80;
-  let pipeGap = 180;
-  let speed = 3;
-
   let vw, vh;
+
+  // ===== CLOUDS =====
+  let clouds = [];
+
+  function spawnCloud() {
+    clouds.push({
+      x: vw(),
+      y: Math.random() * vh() * 0.5,
+      size: Math.random() * 40 + 40,
+      speed: Math.random() * 0.5 + 0.5
+    });
+  }
 
   // ===== LIGHTNING =====
   let lightning = [];
@@ -42,17 +49,18 @@ const obstacles = (() => {
     return segments;
   }
 
-  // ===== MOUNTAIN =====
+  // ===== MOUNTAIN (GROUND) =====
   let mountain = [];
   const segmentWidth = 40;
+  let offset = 0;
 
   function initMountain() {
     mountain = [];
-    let x = 0;
+    offset = 0;
 
+    let x = 0;
     while (x < vw() + 200) {
       mountain.push({
-        x,
         height: Math.random() * 80 + 60
       });
       x += segmentWidth;
@@ -60,14 +68,15 @@ const obstacles = (() => {
   }
 
   function getGroundY(x) {
-    const i = Math.floor(x / segmentWidth);
-    const m1 = mountain[i];
-    const m2 = mountain[i + 1];
+    const worldX = x + offset;
 
-    if (!m1 || !m2) return vh();
+    const i = Math.floor(worldX / segmentWidth);
+    const t = (worldX % segmentWidth) / segmentWidth;
 
-    const t = (x % segmentWidth) / segmentWidth;
-    const h = m1.height * (1 - t) + m2.height * t;
+    const h1 = mountain[i % mountain.length].height;
+    const h2 = mountain[(i + 1) % mountain.length].height;
+
+    const h = h1 * (1 - t) + h2 * t;
 
     return vh() - h;
   }
@@ -76,73 +85,38 @@ const obstacles = (() => {
   function init(viewWidth, viewHeight) {
     vw = viewWidth;
     vh = viewHeight;
-    pipes = [];
+
+    clouds = [];
     lightning = [];
     initMountain();
   }
 
   function reset() {
-    pipes = [];
+    clouds = [];
     lightning = [];
     initMountain();
-  }
-
-  // ===== CREATE PIPE =====
-  function createPipe() {
-    const topHeight = Math.random() * (vh() - pipeGap - 200) + 50;
-
-    return {
-      x: vw(),
-      topHeight,
-      passed: false
-    };
   }
 
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // pipes
-    if (pipes.length === 0 || pipes[pipes.length - 1].x < viewWidth() - 250) {
-      pipes.push(createPipe());
+    // ===== CLOUDS =====
+    if (Math.random() < 0.02) {
+      spawnCloud();
     }
 
-    for (const p of pipes) {
-      p.x -= speed;
-
-      if (!p.passed && p.x + pipeWidth < dragon.x) {
-        p.passed = true;
-        onScore();
-      }
-
-      const inX = dragon.x + dragon.size / 2 > p.x &&
-                  dragon.x - dragon.size / 2 < p.x + pipeWidth;
-
-      const hitTop = dragon.y - dragon.size / 2 < p.topHeight;
-
-      if (inX && hitTop) {
-        onHit();
-      }
+    for (const c of clouds) {
+      c.x -= c.speed;
     }
 
-    while (pipes.length && pipes[0].x < -pipeWidth) {
-      pipes.shift();
-    }
+    clouds = clouds.filter(c => c.x > -100);
 
     // ===== MOUNTAIN SCROLL (KEY FIX) =====
-    for (const m of mountain) {
-      m.x -= speed;
-    }
-
-    if (mountain.length && mountain[0].x < -segmentWidth) {
-      mountain.shift();
-      mountain.push({
-        x: mountain[mountain.length - 1].x + segmentWidth,
-        height: Math.random() * 80 + 60
-      });
-    }
+    offset += 3;
 
     // ===== GROUND COLLISION =====
     const groundY = getGroundY(dragon.x);
+
     if (dragon.y + dragon.size / 2 > groundY) {
       onHit();
     }
@@ -153,7 +127,7 @@ const obstacles = (() => {
     }
 
     for (const l of lightning) {
-      l.x -= speed * 1.5;
+      l.x -= 4.5;
       l.life--;
     }
 
@@ -161,29 +135,35 @@ const obstacles = (() => {
   }
 
   // ===== DRAW =====
-  function draw(ctx, viewHeight) {
+  function draw(ctx) {
 
-    // pipes
-    ctx.fillStyle = 'lime';
-    for (const p of pipes) {
-      ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
+    // ===== CLOUDS =====
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+
+    for (const c of clouds) {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.size * 0.6, 0, Math.PI * 2);
+      ctx.arc(c.x + c.size * 0.5, c.y + 5, c.size * 0.5, 0, Math.PI * 2);
+      ctx.arc(c.x - c.size * 0.5, c.y + 5, c.size * 0.5, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    // mountain
+    // ===== MOUNTAIN =====
     ctx.fillStyle = 'darkgreen';
 
     ctx.beginPath();
     ctx.moveTo(0, vh());
 
-    for (const m of mountain) {
-      ctx.lineTo(m.x, vh() - m.height);
+    for (let x = 0; x <= vw(); x += segmentWidth) {
+      const y = getGroundY(x);
+      ctx.lineTo(x, y);
     }
 
     ctx.lineTo(vw(), vh());
     ctx.closePath();
     ctx.fill();
 
-    // lightning
+    // ===== LIGHTNING =====
     for (const l of lightning) {
       drawBolt(ctx, l);
     }
