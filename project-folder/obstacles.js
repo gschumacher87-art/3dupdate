@@ -54,6 +54,13 @@ const obstacles = (() => {
   let mountain = [];
   const segmentWidth = 40;
 
+  function randomHeight() {
+    const r = Math.random();
+    if (r < 0.6) return Math.random() * 40 + 60;   // small
+    if (r < 0.9) return Math.random() * 60 + 80;   // medium
+    return Math.random() * 80 + 120;               // tall (rare)
+  }
+
   function initMountain() {
     mountain = [];
 
@@ -61,7 +68,7 @@ const obstacles = (() => {
     while (x < vw() + 200) {
       mountain.push({
         x,
-        height: Math.random() * 80 + 60
+        height: randomHeight()
       });
       x += segmentWidth;
     }
@@ -99,22 +106,21 @@ const obstacles = (() => {
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // ===== MOUNTAIN SCROLL (CORRECT WAY) =====
+    // ===== MOUNTAIN SCROLL (UNCHANGED) =====
     for (const m of mountain) {
       m.x -= groundSpeed;
     }
 
-    // recycle terrain smoothly
     if (mountain.length && mountain[0].x < -segmentWidth) {
       mountain.shift();
 
       mountain.push({
         x: mountain[mountain.length - 1].x + segmentWidth,
-        height: Math.random() * 80 + 60
+        height: randomHeight()
       });
     }
 
-    // ===== CLOUDS (SLOWER = DEPTH) =====
+    // ===== CLOUDS =====
     if (Math.random() < 0.02) spawnCloud();
 
     for (const c of clouds) {
@@ -130,7 +136,7 @@ const obstacles = (() => {
       onHit();
     }
 
-    // ===== LIGHTNING (FASTER = FOREGROUND) =====
+    // ===== LIGHTNING =====
     if (Math.random() < 0.02) spawnLightning();
 
     for (const l of lightning) {
@@ -154,8 +160,8 @@ const obstacles = (() => {
       ctx.fill();
     }
 
-    // ===== MOUNTAIN =====
-    ctx.fillStyle = 'darkgreen';
+    // ===== MOUNTAIN BASE (BROWN) =====
+    ctx.fillStyle = '#5c3b1e';
 
     ctx.beginPath();
     ctx.moveTo(0, vh());
@@ -167,6 +173,44 @@ const obstacles = (() => {
     ctx.lineTo(vw(), vh());
     ctx.closePath();
     ctx.fill();
+
+    // ===== SHADOW (LEFT SIDE) =====
+    ctx.fillStyle = '#3e2814';
+
+    for (let i = 0; i < mountain.length - 1; i++) {
+      const m1 = mountain[i];
+      const m2 = mountain[i + 1];
+
+      const peakX = m1.x;
+      const peakY = vh() - m1.height;
+
+      ctx.beginPath();
+      ctx.moveTo(peakX, peakY);
+      ctx.lineTo(m2.x, vh() - m2.height);
+      ctx.lineTo(m2.x, vh());
+      ctx.lineTo(peakX, vh());
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // ===== SNOW CAPS =====
+    ctx.fillStyle = 'white';
+
+    for (let i = 1; i < mountain.length - 1; i++) {
+      const m = mountain[i];
+
+      if (m.height > 110) {
+        const peakX = m.x;
+        const peakY = vh() - m.height;
+
+        ctx.beginPath();
+        ctx.moveTo(peakX - 10, peakY + 10);
+        ctx.lineTo(peakX, peakY);
+        ctx.lineTo(peakX + 10, peakY + 10);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
 
     // ===== LIGHTNING =====
     for (const l of lightning) {
