@@ -73,19 +73,19 @@ const obstacles = (() => {
     return vh() - h;
   }
 
-  // ===== TREES (CLUSTERS + GAPS) =====
+  // ===== TREES =====
   let trees = [];
   let treeCooldown = 0;
 
   function spawnTreeCluster() {
-    const count = Math.floor(Math.random() * 3) + 2; // 2–4 trees
+    const count = Math.floor(Math.random() * 3) + 2;
     let baseX = vw();
 
     for (let i = 0; i < count; i++) {
       const x = baseX + i * 50;
       const groundY = getGroundY(x);
 
-      const height = Math.random() * 120 + 120; // TALLER TREES
+      const height = Math.random() * 120 + 120;
 
       trees.push({
         x,
@@ -97,7 +97,7 @@ const obstacles = (() => {
       });
     }
 
-    treeCooldown = Math.random() * 80 + 80; // BIG GAPS
+    treeCooldown = Math.random() * 80 + 80;
   }
 
   // ===== INIT =====
@@ -138,17 +138,13 @@ const obstacles = (() => {
       });
     }
 
-    // TREES (CLUSTERS)
+    // TREES
     treeCooldown--;
     if (treeCooldown <= 0) spawnTreeCluster();
 
     for (const t of trees) {
       t.x -= groundSpeed;
-
-      // burning timer
-      if (t.burning) {
-        t.burnTime--;
-      }
+      if (t.burning) t.burnTime--;
     }
 
     trees = trees.filter(t => t.x > -50 && t.burnTime > -20);
@@ -163,7 +159,7 @@ const obstacles = (() => {
         dragon.x + dragon.size / 2 > t.x &&
         dragon.x - dragon.size / 2 < t.x + t.width &&
         dragon.y + dragon.size / 2 > t.y &&
-        !t.burning // safe if burning
+        !t.burning
       ) {
         onHit();
       }
@@ -177,7 +173,7 @@ const obstacles = (() => {
     strikes = strikes.filter(s => s.life > 0);
     if (Math.random() < 0.02) spawnStrike();
 
-    // ===== FIREBALL INTERACTION =====
+    // FIREBALL INTERACTION
     const fireballs = dragon.getFireballs();
 
     for (const f of fireballs) {
@@ -194,9 +190,9 @@ const obstacles = (() => {
           t.burnTime = 30;
           f.dead = true;
 
-          // 🔥 burn enemies nearby
           if (window.enemies) {
-            for (const e of enemies.getList()) {
+            const list = enemies.getList();
+            for (const e of list) {
               if (
                 Math.abs(e.x - t.x) < 40 &&
                 Math.abs(e.y - t.y) < t.height
@@ -255,11 +251,9 @@ const obstacles = (() => {
     // TREES
     for (const t of trees) {
 
-      // trunk
       ctx.fillStyle = t.burning ? 'orange' : '#5b3a1e';
       ctx.fillRect(t.x + t.width / 3, t.y + t.height - 20, t.width / 3, 20);
 
-      // leaves
       ctx.fillStyle = t.burning ? 'red' : 'green';
 
       ctx.beginPath();
@@ -296,7 +290,8 @@ const obstacles = (() => {
     reset,
     update,
     draw,
-    getGroundY
+    getGroundY,
+    getTrees: () => trees
   };
 
 })();
