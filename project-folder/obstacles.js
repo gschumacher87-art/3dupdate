@@ -46,7 +46,7 @@ function addLightning(viewWidth, viewHeight) {
     y: 0,
     width: 80,
     height: viewHeight(),
-    life: 20
+    life: 60 // ✅ increased so it shows
   });
 }
 
@@ -97,15 +97,12 @@ function update(viewHeight, viewWidth, dragonData, onScore, onHit) {
   // ===== LIGHTNING =====
   for (const l of lightning) {
     l.x -= pipeSpeed;
-    l.life--;
 
     const hitboxScale = 0.7;
     const hitSize = dragonData.size * hitboxScale;
 
     const dragonLeft = dragonData.x - hitSize / 2;
     const dragonRight = dragonData.x + hitSize / 2;
-    const dragonTop = dragonData.y - hitSize / 2;
-    const dragonBottom = dragonData.y + hitSize / 2;
 
     const lightningLeft = l.x;
     const lightningRight = l.x + l.width;
@@ -115,6 +112,9 @@ function update(viewHeight, viewWidth, dragonData, onScore, onHit) {
       dragonLeft < lightningRight;
 
     if (hitLightning && l.life > 0) onHit();
+
+    // ✅ moved to end so it stays visible
+    l.life--;
   }
 
   // cleanup pipes
@@ -123,7 +123,10 @@ function update(viewHeight, viewWidth, dragonData, onScore, onHit) {
   }
 
   // cleanup lightning
-  while (lightning.length && (lightning[0].x + lightning[0].width < 0 || lightning[0].life <= 0)) {
+  while (
+    lightning.length &&
+    (lightning[0].x + lightning[0].width < 0 || lightning[0].life <= 0)
+  ) {
     lightning.shift();
   }
 }
