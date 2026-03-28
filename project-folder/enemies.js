@@ -10,30 +10,61 @@ const enemies = (() => {
     bullets = [];
   }
 
+  // ===== SPAWN IN TREE GAPS =====
   function spawn(viewWidth) {
-    const x = viewWidth();
-    const y = obstacles.getGroundY(x);
 
-    list.push({
-      x,
-      y,
-      size: 20,
-      dead: false,
-      shootTimer: Math.random() * 60 + 30
-    });
+    const trees = obstacles.getTrees ? obstacles.getTrees() : [];
+
+    if (!trees || trees.length < 2) return;
+
+    // find a usable gap
+    for (let i = 0; i < trees.length - 1; i++) {
+
+      const t1 = trees[i];
+      const t2 = trees[i + 1];
+
+      const gapStart = t1.x + t1.width;
+      const gapEnd = t2.x;
+      const gapSize = gapEnd - gapStart;
+
+      if (gapSize > 80) {
+
+        const x = gapStart + gapSize / 2;
+
+        const groundY = obstacles.getGroundY(x);
+
+        // spawn in air (inside gap)
+        const y = groundY - (Math.random() * 120 + 60);
+
+        list.push({
+          x,
+          y,
+          size: 20,
+          dead: false,
+          shootTimer: 40
+        });
+
+        return;
+      }
+    }
   }
 
   function update(viewWidth, viewHeight, dragon, onHit) {
 
     // ===== SPAWN =====
-    if (Math.random() < 0.01) spawn(viewWidth);
+    if (Math.random() < 0.02) spawn(viewWidth);
 
     // ===== ENEMIES =====
     for (const e of list) {
       if (!e || e.dead) continue;
 
       e.x -= 3;
-      e.y = obstacles.getGroundY(e.x);
+
+      // keep them floating (not snapping to ground)
+      const groundY = obstacles.getGroundY(e.x);
+      const maxY = groundY - 40;
+
+      if (e.y > maxY) e.y = maxY;
 
       e.shootTimer--;
       if (e.shootTimer <= 0) {
@@ -41,7 +72,7 @@ const enemies = (() => {
 
         bullets.push({
           x: e.x,
-          y: e.y - 10,
+          y: e.y,
           vx: -4,
           vy: (dragon.y - e.y) * 0.05
         });
@@ -60,7 +91,7 @@ const enemies = (() => {
       const dy = b.y - dragon.y;
 
       if (Math.sqrt(dx * dx + dy * dy) < dragon.size / 2) {
-        if (onHit) onHit(); // ✅ SAFE CALL
+        if (onHit) onHit();
       }
     }
 
