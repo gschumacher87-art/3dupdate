@@ -117,8 +117,8 @@ const obstacles = (() => {
       onHit();
     }
 
-    // ===== CEILING HIT =====
-    if (dragon.y - dragon.size / 2 < 20) {
+    // ===== CLOUD CEILING HIT =====
+    if (dragon.y - dragon.size / 2 < 25) {
       onHit();
     }
 
@@ -137,15 +137,10 @@ const obstacles = (() => {
 
   function draw(ctx) {
 
-    // ===== CEILING LIGHTNING =====
-    ctx.strokeStyle = 'cyan';
-    ctx.lineWidth = 3;
-
-    ctx.beginPath();
-    for (let x = 0; x < vw(); x += 20) {
-      ctx.lineTo(x, Math.random() * 10);
-    }
-    ctx.stroke();
+    // ===== GREY FLICKER CLOUD CEILING =====
+    const flicker = Math.random() * 40;
+    ctx.fillStyle = `rgb(${80 + flicker}, ${80 + flicker}, ${80 + flicker})`;
+    ctx.fillRect(0, 0, vw(), 25);
 
     // ===== CLOUDS =====
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
