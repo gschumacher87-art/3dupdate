@@ -53,26 +53,23 @@ fireBtn.style.zIndex = 10;
 
 document.body.appendChild(fireBtn);
 
-// ===== INPUT HANDLING (FIXED) =====
+// ===== INPUT (FIXED - NO DOUBLE TRIGGER) =====
 
-// TOUCH
+// ONLY TOUCH for gameplay
 window.addEventListener('touchstart', (e) => {
   if (e.target === fireBtn) return;
   flap();
 }, { passive: true });
 
-// CLICK
-window.addEventListener('click', (e) => {
-  if (e.target === fireBtn) return;
-  flap();
-});
+// REMOVE click flap (prevents double trigger on iPhone)
 
-// BUTTON EVENTS
+// FIRE BUTTON
 fireBtn.addEventListener('touchstart', (e) => {
   e.preventDefault();
   fire();
 }, { passive: false });
 
+// OPTIONAL click for desktop only
 fireBtn.addEventListener('click', fire);
 
 // KEYBOARD
