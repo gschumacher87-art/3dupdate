@@ -66,19 +66,22 @@ window.addEventListener('click', flap);
 // FIRE BUTTON (FIXED)
 fireBtn.addEventListener('touchstart', (e) => {
   e.preventDefault();
-  e.stopPropagation(); // 🔥 prevents flap/reset
   fire();
+  flap();
 }, { passive: false });
 
 fireBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
   fire();
+  flap();
 });
 
 // KEYBOARD
 window.addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'ArrowUp') flap();
-  if (e.code === 'KeyF') fire();
+  if (e.code === 'KeyF') {
+    fire();
+    flap();
+  }
 });
 
 // ===== RESET =====
