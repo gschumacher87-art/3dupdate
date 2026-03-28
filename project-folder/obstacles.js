@@ -49,18 +49,17 @@ const obstacles = (() => {
     return segments;
   }
 
-  // ===== MOUNTAIN (GROUND) =====
+  // ===== MOUNTAIN (STATIC) =====
   let mountain = [];
   const segmentWidth = 40;
-  let offset = 0;
 
   function initMountain() {
     mountain = [];
-    offset = 0;
 
     let x = 0;
     while (x < vw() + 200) {
       mountain.push({
+        x,
         height: Math.random() * 80 + 60
       });
       x += segmentWidth;
@@ -68,15 +67,14 @@ const obstacles = (() => {
   }
 
   function getGroundY(x) {
-    const worldX = x + offset;
+    const i = Math.floor(x / segmentWidth);
+    const m1 = mountain[i];
+    const m2 = mountain[i + 1];
 
-    const i = Math.floor(worldX / segmentWidth);
-    const t = (worldX % segmentWidth) / segmentWidth;
+    if (!m1 || !m2) return vh();
 
-    const h1 = mountain[i % mountain.length].height;
-    const h2 = mountain[(i + 1) % mountain.length].height;
-
-    const h = h1 * (1 - t) + h2 * t;
+    const t = (x % segmentWidth) / segmentWidth;
+    const h = m1.height * (1 - t) + m2.height * t;
 
     return vh() - h;
   }
@@ -110,9 +108,6 @@ const obstacles = (() => {
     }
 
     clouds = clouds.filter(c => c.x > -100);
-
-    // ===== MOUNTAIN SCROLL (KEY FIX) =====
-    offset += 3;
 
     // ===== GROUND COLLISION =====
     const groundY = getGroundY(dragon.x);
@@ -148,15 +143,14 @@ const obstacles = (() => {
       ctx.fill();
     }
 
-    // ===== MOUNTAIN =====
+    // ===== MOUNTAIN (STATIC) =====
     ctx.fillStyle = 'darkgreen';
 
     ctx.beginPath();
     ctx.moveTo(0, vh());
 
-    for (let x = 0; x <= vw(); x += segmentWidth) {
-      const y = getGroundY(x);
-      ctx.lineTo(x, y);
+    for (const m of mountain) {
+      ctx.lineTo(m.x, vh() - m.height);
     }
 
     ctx.lineTo(vw(), vh());
