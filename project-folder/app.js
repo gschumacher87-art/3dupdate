@@ -23,37 +23,13 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ===== IMAGE =====
-const dragon = new Image();
-dragon.src = 'https://raw.githubusercontent.com/gschumacher87-art/3dupdate/main/project-folder/dragon.png';
-
-// ===== PHYSICS =====
-let velocity = 0;
-const gravity = 0.5;
-const lift = -8;
-
 // ===== GAME STATE =====
 let gameOver = false;
 let score = 0;
 
-// ===== PIPES =====
-const pipes = [];
-let pipeWidth;
-let pipeGap;
-const pipeSpeed = 2;
-const pipeSpawnEvery = 140;
-let pipeTimer = 0;
-
-// ===== PRE-CALC =====
-let size, x, y;
-
 // ===== INPUT =====
 function flap() {
-  if (gameOver) {
-    resetGame();
-    return;
-  }
-  velocity = lift;
+  dragon.flap(gameOver, resetGame);
 }
 
 window.addEventListener('click', flap);
@@ -64,39 +40,17 @@ window.addEventListener('keydown', e => {
 
 // ===== RESET =====
 function resetGame() {
-  velocity = 0;
   score = 0;
   gameOver = false;
-  pipes.length = 0;
-  pipeTimer = 0;
 
-  x = Math.floor(viewWidth() * 0.2);
-  y = Math.floor(viewHeight() * 0.45);
+  dragon.reset(viewWidth, viewHeight);
+  obstacles.reset();
 }
 
-// ===== PIPES =====
-function addPipe() {
-  const minTop = 60;
-  const maxTop = viewHeight() - pipeGap - 120;
-  const topHeight = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
-
-  pipes.push({
-    x: viewWidth(),
-    topHeight,
-    passed: false
-  });
-}
-
-// ===== IMAGE LOAD =====
-dragon.onload = () => {
-  size = Math.floor(viewWidth() * 0.12);
-  size = Math.max(32, Math.round(size));
-
-  pipeWidth = Math.floor(viewWidth() * 0.08);
-  pipeGap = Math.floor(viewHeight() * 0.25);
-
-  x = Math.floor(viewWidth() * 0.2);
-  y = Math.floor(viewHeight() * 0.45);
+// ===== START AFTER IMAGE LOAD =====
+dragon.img.onload = () => {
+  dragon.init(viewWidth, viewHeight);
+  obstacles.init(viewWidth, viewHeight);
 
   requestAnimationFrame(loop);
 };
@@ -107,85 +61,30 @@ function loop() {
   ctx.fillRect(0, 0, viewWidth(), viewHeight());
 
   if (!gameOver) {
-    velocity += gravity;
-    y += velocity;
+    dragon.update();
 
-    y = Math.round(y);
-    velocity = Math.round(velocity * 1000) / 1000;
+    obstacles.update(
+      viewHeight,
+      viewWidth,
+      dragon.get(),
+      () => score++,
+      () => gameOver = true
+    );
 
-    pipeTimer++;
-    if (pipeTimer >= pipeSpawnEvery) {
-      addPipe();
-      pipeTimer = 0;
-    }
+    const d = dragon.get();
 
-    for (const p of pipes) {
-      p.x -= pipeSpeed;
-
-      const hitboxScale = 0.7;
-      const hitSize = size * hitboxScale;
-
-      const dragonLeft = x - hitSize / 2;
-      const dragonRight = x + hitSize / 2;
-      const dragonTop = y - hitSize / 2;
-      const dragonBottom = y + hitSize / 2;
-
-      const pipeLeft = p.x;
-      const pipeRight = p.x + pipeWidth;
-      const topPipeBottom = p.topHeight;
-      const bottomPipeTop = p.topHeight + pipeGap;
-
-      if (!p.passed && pipeRight < dragonLeft) {
-        p.passed = true;
-        score++;
-      }
-
-      const hitPipe =
-        dragonRight > pipeLeft &&
-        dragonLeft < pipeRight &&
-        (dragonTop < topPipeBottom || dragonBottom > bottomPipeTop);
-
-      if (hitPipe) gameOver = true;
-    }
-
-    while (pipes.length && pipes[0].x + pipeWidth < 0) {
-      pipes.shift();
-    }
-
-    if (y + size / 2 > viewHeight()) {
-      y = viewHeight() - size / 2;
+    if (d.y + d.size / 2 > viewHeight()) {
       gameOver = true;
     }
 
-    if (y - size / 2 < 0) {
-      y = size / 2;
-      velocity = 0;
+    if (d.y - d.size / 2 < 0) {
+      d.y = d.size / 2;
     }
   }
 
-  // ===== DRAW PIPES =====
-  ctx.fillStyle = 'lime';
-  for (const p of pipes) {
-    ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
-    ctx.fillRect(
-      p.x,
-      p.topHeight + pipeGap,
-      pipeWidth,
-      viewHeight() - (p.topHeight + pipeGap)
-    );
-  }
-
-  // ===== DRAW DRAGON (SINGLE SPRITE - PERFECT CENTER) =====
-  const drawX = Math.round(x - size / 2);
-  const drawY = Math.round(y - size / 2);
-
-  ctx.drawImage(
-    dragon,
-    drawX,
-    drawY,
-    size,
-    size
-  );
+  // ===== DRAW =====
+  obstacles.draw(ctx, viewHeight);
+  dragon.draw(ctx);
 
   // ===== UI =====
   ctx.fillStyle = 'white';
