@@ -3,14 +3,14 @@ const obstacles = (() => {
   let vw, vh;
 
   const groundSpeed = 3;
-  const lightningSpeedFactor = 1.5;
 
-  let lightning = [];
+  // ===== LIGHTNING STRIKES =====
+  let strikes = [];
 
-  function spawnLightning() {
-    lightning.push({
-      x: vw(),
-      life: 12,
+  function spawnStrike() {
+    strikes.push({
+      x: Math.random() * vw(),
+      life: 10,
       segments: generateBolt()
     });
   }
@@ -62,17 +62,18 @@ const obstacles = (() => {
   function init(viewWidth, viewHeight) {
     vw = viewWidth;
     vh = viewHeight;
-    lightning = [];
+    strikes = [];
     initMountain();
   }
 
   function reset() {
-    lightning = [];
+    strikes = [];
     initMountain();
   }
 
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
+    // mountain
     for (const m of mountain) m.x -= groundSpeed;
 
     if (mountain.length && mountain[0].x < -segmentWidth) {
@@ -83,32 +84,24 @@ const obstacles = (() => {
       });
     }
 
+    // ground hit
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) onHit();
 
-    // ceiling
-    if (dragon.y - dragon.size / 2 < 20) onHit();
-
-    if (Math.random() < 0.02) spawnLightning();
-
-    for (const l of lightning) {
-      l.x -= groundSpeed * lightningSpeedFactor;
-      l.life--;
+    // ===== LIGHTNING STRIKE HIT =====
+    for (const s of strikes) {
+      if (Math.abs(dragon.x - s.x) < 20) {
+        onHit();
+      }
+      s.life--;
     }
 
-    lightning = lightning.filter(l => l.life > 0);
+    strikes = strikes.filter(s => s.life > 0);
+
+    if (Math.random() < 0.02) spawnStrike();
   }
 
   function draw(ctx) {
-
-    // ceiling lightning
-    ctx.strokeStyle = 'cyan';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    for (let x = 0; x < vw(); x += 20) {
-      ctx.lineTo(x, Math.random() * 10);
-    }
-    ctx.stroke();
 
     // mountain
     ctx.fillStyle = '#5c3b1e';
@@ -136,17 +129,25 @@ const obstacles = (() => {
       }
     }
 
-    // lightning bolts
-    for (const l of lightning) {
+    // ===== LIGHTNING DRAW =====
+    for (const s of strikes) {
       ctx.strokeStyle = 'cyan';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'cyan';
+
       ctx.beginPath();
-      let prev = { x: l.x, y: 0 };
-      for (const s of l.segments) {
+
+      let prev = { x: s.x, y: 0 };
+
+      for (const seg of s.segments) {
         ctx.moveTo(prev.x, prev.y);
-        ctx.lineTo(l.x + s.x, s.y);
-        prev = { x: l.x + s.x, y: s.y };
+        ctx.lineTo(s.x + seg.x, seg.y);
+        prev = { x: s.x + seg.x, y: seg.y };
       }
+
       ctx.stroke();
+      ctx.shadowBlur = 0;
     }
   }
 
