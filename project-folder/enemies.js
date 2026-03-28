@@ -17,15 +17,21 @@ const enemies = (() => {
     list.push({
       x,
       y,
+      size: 20,
+      dead: false,
       shootTimer: Math.random() * 60 + 30
     });
   }
 
   function update(viewWidth, viewHeight, dragon, onHit) {
 
+    // ===== SPAWN =====
     if (Math.random() < 0.01) spawn(viewWidth);
 
+    // ===== ENEMIES =====
     for (const e of list) {
+      if (e.dead) continue;
+
       e.x -= 3;
       e.y = obstacles.getGroundY(e.x);
 
@@ -42,8 +48,10 @@ const enemies = (() => {
       }
     }
 
-    list = list.filter(e => e.x > -50);
+    // REMOVE DEAD + OFFSCREEN
+    list = list.filter(e => !e.dead && e.x > -50);
 
+    // ===== BULLETS =====
     for (const b of bullets) {
       b.x += b.vx;
       b.y += b.vy;
@@ -61,10 +69,13 @@ const enemies = (() => {
 
   function draw(ctx) {
 
+    // ===== ENEMIES =====
     ctx.strokeStyle = '#ffcc00';
     ctx.lineWidth = 2;
 
     for (const e of list) {
+      if (e.dead) continue;
+
       const y = e.y;
 
       ctx.beginPath();
@@ -82,6 +93,7 @@ const enemies = (() => {
       ctx.stroke();
     }
 
+    // ===== BULLETS =====
     ctx.fillStyle = 'red';
     for (const b of bullets) {
       ctx.beginPath();
@@ -90,6 +102,10 @@ const enemies = (() => {
     }
   }
 
-  return { init, reset, update, draw };
+  function getList() {
+    return list;
+  }
+
+  return { init, reset, update, draw, getList };
 
 })();
