@@ -8,15 +8,14 @@ const pipeSpeed = 2;
 const pipeSpawnEvery = 140;
 let pipeTimer = 0;
 
-const lightningSpawnEvery = 80; // ✅ faster spawn
+const lightningSpawnEvery = 80;
 let lightningTimer = 0;
 
 function init(viewWidth, viewHeight) {
   pipeWidth = Math.floor(viewWidth() * 0.08);
   pipeGap = Math.floor(viewHeight() * 0.25);
 
-  // ✅ force one lightning at start (debug + guarantees visibility)
-  addLightning(viewWidth, viewHeight);
+  addLightning(viewWidth, viewHeight); // force first spawn
 }
 
 function reset() {
@@ -43,7 +42,7 @@ function addPipe(viewHeight, viewWidth) {
 function addLightning(viewWidth, viewHeight) {
   lightning.push({
     x: viewWidth(),
-    life: 60 // ✅ longer life so visible
+    life: 60
   });
 }
 
@@ -139,27 +138,33 @@ function draw(ctx, viewHeight) {
   // ===== LIGHTNING =====
   for (const l of lightning) {
     if (l.life > 0) {
-      let x = l.x;
-      let y = 0;
+      const centerX = l.x;
 
       ctx.strokeStyle = 'cyan';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 6;
 
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 20;
       ctx.shadowColor = 'cyan';
 
       ctx.beginPath();
-      ctx.moveTo(x, y);
+      ctx.moveTo(centerX, 0);
 
-      for (let i = 0; i < 12; i++) {
-        y += viewHeight / 12;
-        x += (Math.random() - 0.5) * 20;
+      let x = centerX;
+      let y = 0;
+
+      for (let i = 0; i < 10; i++) {
+        y += viewHeight() / 10;
+        x += (Math.random() - 0.5) * 30;
         ctx.lineTo(x, y);
       }
 
       ctx.stroke();
 
       ctx.shadowBlur = 0;
+
+      // debug hitbox
+      ctx.fillStyle = 'rgba(0,255,255,0.2)';
+      ctx.fillRect(centerX - 10, 0, 20, viewHeight());
     }
   }
 }
