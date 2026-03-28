@@ -27,6 +27,9 @@ resize();
 let gameOver = false;
 let score = 0;
 
+// ===== TIME TRACKING =====
+let lastTime = 0;
+
 // ===== INPUT =====
 function flap() {
   dragon.flap(gameOver, resetGame);
@@ -42,6 +45,7 @@ window.addEventListener('keydown', e => {
 function resetGame() {
   score = 0;
   gameOver = false;
+  lastTime = 0;
 
   dragon.reset(viewWidth, viewHeight);
   obstacles.reset();
@@ -56,18 +60,27 @@ dragon.img.onload = () => {
 };
 
 // ===== LOOP =====
-function loop() {
+function loop(time) {
+
+  // ===== DELTA TIME =====
+  const deltaTime = time - lastTime;
+  lastTime = time;
+
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, viewWidth(), viewHeight());
 
   if (!gameOver) {
+
+    // ===== SCORE (TIME BASED) =====
+    score += deltaTime / 1000;
+
     dragon.update();
 
     obstacles.update(
       viewHeight,
       viewWidth,
       dragon.get(),
-      () => score++,
+      () => {}, // removed score++
       () => gameOver = true
     );
 
@@ -89,7 +102,7 @@ function loop() {
   // ===== UI =====
   ctx.fillStyle = 'white';
   ctx.font = '24px Arial';
-  ctx.fillText(`Score: ${score}`, 20, 40);
+  ctx.fillText(`Score: ${Math.floor(score)}`, 20, 40);
 
   if (gameOver) {
     ctx.font = '28px Arial';
