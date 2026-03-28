@@ -173,13 +173,15 @@ const obstacles = (() => {
     strikes = strikes.filter(s => s.life > 0);
     if (Math.random() < 0.02) spawnStrike();
 
-    // FIREBALL INTERACTION
-    const fireballs = dragon.getFireballs();
+    // ===== FIXED FIREBALL INTERACTION =====
+    const fireballs = window.dragon.getFireballs();
 
     for (const f of fireballs) {
+      if (!f) continue;
+
       for (const t of trees) {
 
-        if (t.burning) continue;
+        if (!t || t.burning) continue;
 
         if (
           f.x > t.x &&
@@ -190,9 +192,12 @@ const obstacles = (() => {
           t.burnTime = 30;
           f.dead = true;
 
-          if (window.enemies) {
+          if (typeof enemies !== 'undefined' && enemies.getList) {
             const list = enemies.getList();
+
             for (const e of list) {
+              if (!e) continue;
+
               if (
                 Math.abs(e.x - t.x) < 40 &&
                 Math.abs(e.y - t.y) < t.height
