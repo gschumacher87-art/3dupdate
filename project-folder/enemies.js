@@ -40,7 +40,9 @@ const enemies = (() => {
 
       if (gapSize > 120) {
 
-        const x = gapStart + gapSize / 2;
+        const SPAWN_OFFSET = 120;
+        const x = gapStart + gapSize / 2 + SPAWN_OFFSET;
+
         const groundY = obstacles.getGroundY(x);
         const y = groundY - (80 + gapSize * 0.3);
 
@@ -61,7 +63,9 @@ const enemies = (() => {
   // ===== FLYING ENEMY =====
   function spawnFlying(viewWidth) {
 
-    const x = viewWidth();
+    const SPAWN_OFFSET = 120;
+    const x = viewWidth() + SPAWN_OFFSET;
+
     const y = 60 + Math.random() * (window.innerHeight * 0.5);
 
     list.push({
@@ -169,7 +173,7 @@ const enemies = (() => {
       if (e.type === 'ground') {
         ctx.strokeStyle = '#ffcc00';
       } else {
-        ctx.strokeStyle = '#00ffff'; // flying = different color
+        ctx.strokeStyle = '#00ffff';
       }
 
       ctx.beginPath();
