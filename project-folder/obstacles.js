@@ -89,7 +89,7 @@ const obstacles = (() => {
 
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // clouds
+    // ===== CLOUDS =====
     if (Math.random() < 0.02) spawnCloud();
 
     for (const c of clouds) {
@@ -98,7 +98,7 @@ const obstacles = (() => {
 
     clouds = clouds.filter(c => c.x > -100);
 
-    // mountain
+    // ===== MOUNTAIN =====
     for (const m of mountain) {
       m.x -= groundSpeed;
     }
@@ -111,16 +111,15 @@ const obstacles = (() => {
       });
     }
 
-    // ground hit
+    // ===== GROUND HIT =====
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) onHit();
 
     // ===== CEILING HIT =====
     if (dragon.y - dragon.size / 2 < 30) onHit();
 
-    // lightning strike hit
+    // ===== LIGHTNING (VISUAL ONLY) =====
     for (const s of strikes) {
-      if (Math.abs(dragon.x - s.x) < 20) onHit();
       s.life--;
     }
 
@@ -131,14 +130,12 @@ const obstacles = (() => {
 
   function draw(ctx) {
 
-    // ===== DETAILED CLOUD CEILING =====
+    // ===== CLOUD CEILING =====
     const flicker = Math.random() * 30;
 
-    // base layer
     ctx.fillStyle = `rgb(${70 + flicker}, ${70 + flicker}, ${70 + flicker})`;
     ctx.fillRect(0, 0, vw(), 30);
 
-    // jagged underside (makes it feel like obstacle)
     ctx.fillStyle = `rgb(${90 + flicker}, ${90 + flicker}, ${90 + flicker})`;
 
     ctx.beginPath();
@@ -154,7 +151,6 @@ const obstacles = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // darker shadow layer for depth
     ctx.fillStyle = `rgba(0,0,0,0.2)`;
     ctx.fillRect(0, 0, vw(), 15);
 
@@ -199,7 +195,7 @@ const obstacles = (() => {
       }
     }
 
-    // ===== LIGHTNING STRIKES =====
+    // ===== LIGHTNING =====
     for (const s of strikes) {
       ctx.strokeStyle = 'cyan';
       ctx.lineWidth = 2;
