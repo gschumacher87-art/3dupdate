@@ -73,8 +73,8 @@ const obstacles = (() => {
 
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // mountain
     for (const m of mountain) m.x -= groundSpeed;
+
     if (mountain.length && mountain[0].x < -segmentWidth) {
       mountain.shift();
       mountain.push({
@@ -83,16 +83,12 @@ const obstacles = (() => {
       });
     }
 
-    // ground hit
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) onHit();
 
-    // ===== CEILING LIGHTNING HIT =====
-    if (dragon.y - dragon.size / 2 < 20) {
-      onHit();
-    }
+    // ceiling
+    if (dragon.y - dragon.size / 2 < 20) onHit();
 
-    // lightning visual
     if (Math.random() < 0.02) spawnLightning();
 
     for (const l of lightning) {
@@ -105,14 +101,12 @@ const obstacles = (() => {
 
   function draw(ctx) {
 
-    // ===== CEILING LIGHTNING LINE =====
+    // ceiling lightning
     ctx.strokeStyle = 'cyan';
     ctx.lineWidth = 3;
-
     ctx.beginPath();
     for (let x = 0; x < vw(); x += 20) {
-      const y = Math.random() * 10;
-      ctx.lineTo(x, y);
+      ctx.lineTo(x, Math.random() * 10);
     }
     ctx.stroke();
 
@@ -156,6 +150,6 @@ const obstacles = (() => {
     }
   }
 
-  return { init, reset, update, draw };
+  return { init, reset, update, draw, getGroundY };
 
 })();
