@@ -44,6 +44,29 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyF') fire();
 });
 
+// ===== FIRE BUTTON =====
+const fireBtn = document.createElement('button');
+fireBtn.innerText = '🔥';
+fireBtn.style.position = 'absolute';
+fireBtn.style.bottom = '20px';
+fireBtn.style.right = '20px';
+fireBtn.style.fontSize = '28px';
+fireBtn.style.padding = '10px 16px';
+fireBtn.style.borderRadius = '10px';
+fireBtn.style.border = 'none';
+fireBtn.style.background = 'orange';
+fireBtn.style.color = 'white';
+fireBtn.style.zIndex = 10;
+
+document.body.appendChild(fireBtn);
+
+fireBtn.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  fire();
+}, { passive: false });
+
+fireBtn.addEventListener('click', fire);
+
 // ===== RESET =====
 function resetGame() {
   score = 0;
