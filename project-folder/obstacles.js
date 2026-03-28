@@ -2,23 +2,9 @@ const obstacles = (() => {
 
   let vw, vh;
 
-  // ===== SETTINGS =====
   const groundSpeed = 3;
-  const cloudSpeedFactor = 0.3;
   const lightningSpeedFactor = 1.5;
 
-  // ===== CLOUDS =====
-  let clouds = [];
-
-  function spawnCloud() {
-    clouds.push({
-      x: vw(),
-      y: Math.random() * vh() * 0.4,
-      size: Math.random() * 40 + 40
-    });
-  }
-
-  // ===== LIGHTNING =====
   let lightning = [];
 
   function spawnLightning() {
@@ -36,34 +22,10 @@ const obstacles = (() => {
     while (y < vh()) {
       x += (Math.random() - 0.5) * 40;
       y += 20;
-
       segments.push({ x, y });
-
-      if (Math.random() < 0.2) {
-        segments.push({
-          x: x + (Math.random() - 0.5) * 50,
-          y: y + 20
-        });
-      }
     }
 
     return segments;
-  }
-
-  // ===== ENEMIES =====
-  let enemies = [];
-  let bullets = [];
-
-  function spawnEnemy() {
-    const x = vw();
-    const y = getGroundY(x);
-
-    enemies.push({
-      x,
-      y,
-      size: 12,
-      shootTimer: Math.random() * 60 + 30
-    });
   }
 
   // ===== MOUNTAIN =====
@@ -79,13 +41,9 @@ const obstacles = (() => {
 
   function initMountain() {
     mountain = [];
-
     let x = 0;
     while (x < vw() + 200) {
-      mountain.push({
-        x,
-        height: randomHeight()
-      });
+      mountain.push({ x, height: randomHeight() });
       x += segmentWidth;
     }
   }
@@ -94,42 +52,29 @@ const obstacles = (() => {
     const i = Math.floor(x / segmentWidth);
     const m1 = mountain[i];
     const m2 = mountain[i + 1];
-
     if (!m1 || !m2) return vh();
 
     const t = (x % segmentWidth) / segmentWidth;
     const h = m1.height * (1 - t) + m2.height * t;
-
     return vh() - h;
   }
 
-  // ===== INIT =====
   function init(viewWidth, viewHeight) {
     vw = viewWidth;
     vh = viewHeight;
-
-    clouds = [];
     lightning = [];
-    enemies = [];
-    bullets = [];
     initMountain();
   }
 
   function reset() {
-    clouds = [];
     lightning = [];
-    enemies = [];
-    bullets = [];
     initMountain();
   }
 
-  // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    for (const m of mountain) {
-      m.x -= groundSpeed;
-    }
-
+    // mountain
+    for (const m of mountain) m.x -= groundSpeed;
     if (mountain.length && mountain[0].x < -segmentWidth) {
       mountain.shift();
       mountain.push({
@@ -138,55 +83,16 @@ const obstacles = (() => {
       });
     }
 
-    if (Math.random() < 0.02) spawnCloud();
-
-    for (const c of clouds) {
-      c.x -= groundSpeed * cloudSpeedFactor;
-    }
-
-    clouds = clouds.filter(c => c.x > -100);
-
-    if (Math.random() < 0.01) spawnEnemy();
-
-    for (const e of enemies) {
-      e.x -= groundSpeed;
-      e.y = getGroundY(e.x);
-
-      e.shootTimer--;
-
-      if (e.shootTimer <= 0) {
-        e.shootTimer = 60;
-
-        bullets.push({
-          x: e.x,
-          y: e.y - 10,
-          vx: -4,
-          vy: (dragon.y - e.y) * 0.05
-        });
-      }
-    }
-
-    enemies = enemies.filter(e => e.x > -50);
-
-    for (const b of bullets) {
-      b.x += b.vx;
-      b.y += b.vy;
-
-      const dx = b.x - dragon.x;
-      const dy = b.y - dragon.y;
-
-      if (Math.sqrt(dx * dx + dy * dy) < dragon.size / 2) {
-        onHit();
-      }
-    }
-
-    bullets = bullets.filter(b => b.x > -50);
-
+    // ground hit
     const groundY = getGroundY(dragon.x);
-    if (dragon.y + dragon.size / 2 > groundY) {
+    if (dragon.y + dragon.size / 2 > groundY) onHit();
+
+    // ===== CEILING LIGHTNING HIT =====
+    if (dragon.y - dragon.size / 2 < 20) {
       onHit();
     }
 
+    // lightning visual
     if (Math.random() < 0.02) spawnLightning();
 
     for (const l of lightning) {
@@ -197,20 +103,20 @@ const obstacles = (() => {
     lightning = lightning.filter(l => l.life > 0);
   }
 
-  // ===== DRAW =====
   function draw(ctx) {
 
-    // clouds
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    for (const c of clouds) {
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, c.size * 0.6, 0, Math.PI * 2);
-      ctx.arc(c.x + c.size * 0.5, c.y + 5, c.size * 0.5, 0, Math.PI * 2);
-      ctx.arc(c.x - c.size * 0.5, c.y + 5, c.size * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    // ===== CEILING LIGHTNING LINE =====
+    ctx.strokeStyle = 'cyan';
+    ctx.lineWidth = 3;
 
-    // mountain base
+    ctx.beginPath();
+    for (let x = 0; x < vw(); x += 20) {
+      const y = Math.random() * 10;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // mountain
     ctx.fillStyle = '#5c3b1e';
     ctx.beginPath();
     ctx.moveTo(0, vh());
@@ -221,98 +127,35 @@ const obstacles = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // ===== SNOW CAPS (RESTORED ONLY) =====
+    // snow caps
     ctx.fillStyle = 'white';
-
     for (let i = 1; i < mountain.length - 1; i++) {
       const m = mountain[i];
-
       if (m.height > 110) {
         const peakX = m.x;
         const peakY = vh() - m.height;
-
         ctx.beginPath();
         ctx.moveTo(peakX - 10, peakY + 10);
         ctx.lineTo(peakX, peakY);
         ctx.lineTo(peakX + 10, peakY + 10);
-        ctx.closePath();
         ctx.fill();
       }
     }
 
-    // enemies
-    ctx.strokeStyle = '#ffcc00';
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = '#ffcc00';
-
-    for (const e of enemies) {
-      const y = e.y;
-
+    // lightning bolts
+    for (const l of lightning) {
+      ctx.strokeStyle = 'cyan';
       ctx.beginPath();
-      ctx.arc(e.x, y - 12, 4, 0, Math.PI * 2);
-      ctx.moveTo(e.x, y - 8);
-      ctx.lineTo(e.x, y);
-      ctx.moveTo(e.x, y - 5);
-      ctx.lineTo(e.x - 5, y - 2);
-      ctx.moveTo(e.x, y - 5);
-      ctx.lineTo(e.x + 5, y - 2);
-      ctx.moveTo(e.x, y);
-      ctx.lineTo(e.x - 4, y + 6);
-      ctx.moveTo(e.x, y);
-      ctx.lineTo(e.x + 4, y + 6);
+      let prev = { x: l.x, y: 0 };
+      for (const s of l.segments) {
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(l.x + s.x, s.y);
+        prev = { x: l.x + s.x, y: s.y };
+      }
       ctx.stroke();
     }
-
-    ctx.shadowBlur = 0;
-
-    // bullets
-    ctx.fillStyle = 'red';
-    for (const b of bullets) {
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // lightning
-    for (const l of lightning) {
-      drawBolt(ctx, l);
-    }
   }
 
-  function drawBolt(ctx, l) {
-    const flicker = Math.random() * 3;
-
-    ctx.strokeStyle = 'cyan';
-    ctx.lineWidth = 2 + flicker;
-
-    ctx.shadowBlur = 15 + flicker * 5;
-    ctx.shadowColor = 'cyan';
-
-    ctx.beginPath();
-
-    let prev = { x: l.x, y: 0 };
-
-    for (const s of l.segments) {
-      const jitterX = s.x + (Math.random() - 0.5) * 10;
-      const jitterY = s.y + (Math.random() - 0.5) * 10;
-
-      ctx.moveTo(prev.x, prev.y);
-      ctx.lineTo(l.x + jitterX, jitterY);
-
-      prev = { x: l.x + jitterX, y: jitterY };
-    }
-
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
-  }
-
-  return {
-    init,
-    reset,
-    update,
-    draw
-  };
+  return { init, reset, update, draw };
 
 })();
