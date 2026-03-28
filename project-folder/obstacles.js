@@ -7,9 +7,6 @@ const obstacles = (() => {
 
   let vw, vh;
 
-  // ===== GROUND HEIGHT =====
-  const groundHeight = 120;
-
   // ===== LIGHTNING =====
   let lightning = [];
 
@@ -47,7 +44,7 @@ const obstacles = (() => {
 
   // ===== MOUNTAIN =====
   let mountain = [];
-  let offset = 0;
+  const segmentWidth = 40;
 
   function initMountain() {
     mountain = [];
@@ -56,10 +53,23 @@ const obstacles = (() => {
     while (x < vw() + 200) {
       mountain.push({
         x,
-        height: Math.random() * 60 + 40
+        height: Math.random() * 80 + 60
       });
-      x += 40;
+      x += segmentWidth;
     }
+  }
+
+  function getGroundY(x) {
+    const i = Math.floor(x / segmentWidth);
+    const m1 = mountain[i];
+    const m2 = mountain[i + 1];
+
+    if (!m1 || !m2) return vh();
+
+    const t = (x % segmentWidth) / segmentWidth;
+    const h = m1.height * (1 - t) + m2.height * t;
+
+    return vh() - h;
   }
 
   // ===== INIT =====
@@ -79,7 +89,7 @@ const obstacles = (() => {
 
   // ===== CREATE PIPE =====
   function createPipe() {
-    const topHeight = Math.random() * (vh() - pipeGap - groundHeight - 100) + 50;
+    const topHeight = Math.random() * (vh() - pipeGap - 200) + 50;
 
     return {
       x: vw(),
@@ -91,7 +101,7 @@ const obstacles = (() => {
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // ===== PIPES =====
+    // pipes
     if (pipes.length === 0 || pipes[pipes.length - 1].x < viewWidth() - 250) {
       pipes.push(createPipe());
     }
@@ -109,14 +119,7 @@ const obstacles = (() => {
 
       const hitTop = dragon.y - dragon.size / 2 < p.topHeight;
 
-      // ✅ NEW: ground collision instead of fake bottom pipe
-      const hitGround = dragon.y + dragon.size / 2 > vh() - groundHeight;
-
       if (inX && hitTop) {
-        onHit();
-      }
-
-      if (hitGround) {
         onHit();
       }
     }
@@ -125,16 +128,23 @@ const obstacles = (() => {
       pipes.shift();
     }
 
-    // ===== MOUNTAIN SCROLL =====
-    offset -= speed;
+    // ===== MOUNTAIN SCROLL (KEY FIX) =====
+    for (const m of mountain) {
+      m.x -= speed;
+    }
 
-    if (offset <= -40) {
-      offset = 0;
+    if (mountain.length && mountain[0].x < -segmentWidth) {
       mountain.shift();
       mountain.push({
-        x: mountain[mountain.length - 1].x + 40,
-        height: Math.random() * 60 + 40
+        x: mountain[mountain.length - 1].x + segmentWidth,
+        height: Math.random() * 80 + 60
       });
+    }
+
+    // ===== GROUND COLLISION =====
+    const groundY = getGroundY(dragon.x);
+    if (dragon.y + dragon.size / 2 > groundY) {
+      onHit();
     }
 
     // ===== LIGHTNING =====
@@ -153,31 +163,27 @@ const obstacles = (() => {
   // ===== DRAW =====
   function draw(ctx, viewHeight) {
 
-    // ===== TOP PIPES =====
+    // pipes
     ctx.fillStyle = 'lime';
     for (const p of pipes) {
       ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
     }
 
-    // ===== MOUNTAIN (GROUND) =====
+    // mountain
     ctx.fillStyle = 'darkgreen';
 
     ctx.beginPath();
     ctx.moveTo(0, vh());
 
-    for (let i = 0; i < mountain.length; i++) {
-      const m = mountain[i];
-      const x = m.x + offset;
-      const y = vh() - m.height;
-
-      ctx.lineTo(x, y);
+    for (const m of mountain) {
+      ctx.lineTo(m.x, vh() - m.height);
     }
 
     ctx.lineTo(vw(), vh());
     ctx.closePath();
     ctx.fill();
 
-    // ===== LIGHTNING =====
+    // lightning
     for (const l of lightning) {
       drawBolt(ctx, l);
     }
