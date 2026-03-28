@@ -31,7 +31,7 @@ function reset(viewWidth, viewHeight) {
 }
 
 // ===== UPDATE =====
-function update(viewWidth, viewHeight, enemies) {
+function update(viewWidth, viewHeight, enemies = []) {
   velocity += gravity;
   y += velocity;
 
@@ -47,9 +47,9 @@ function update(viewWidth, viewHeight, enemies) {
     f.trail.push({ x: f.x, y: f.y });
     if (f.trail.length > 5) f.trail.shift();
 
-    // ===== HIT ENEMIES =====
-    for (const e of enemies) {
-      if (e.dead) continue;
+    // ===== SAFE ENEMY HIT =====
+    for (const e of (enemies || [])) {
+      if (!e || e.dead) continue;
 
       if (
         f.x < e.x + e.size &&
