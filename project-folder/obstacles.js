@@ -69,7 +69,6 @@ const obstacles = (() => {
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // ===== PIPES =====
     if (pipes.length === 0 || pipes[pipes.length - 1].x < viewWidth() - 250) {
       pipes.push(createPipe());
     }
@@ -113,18 +112,41 @@ const obstacles = (() => {
   // ===== DRAW =====
   function draw(ctx, viewHeight) {
 
-    // ===== PIPES =====
+    // ===== TOP PIPES (UNCHANGED) =====
     ctx.fillStyle = 'lime';
 
     for (const p of pipes) {
       ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
+    }
 
-      ctx.fillRect(
-        p.x,
-        p.topHeight + pipeGap,
-        pipeWidth,
-        viewHeight() - (p.topHeight + pipeGap)
-      );
+    // ===== MOUNTAIN RANGE (BOTTOM) =====
+    ctx.fillStyle = 'darkgreen';
+
+    for (const p of pipes) {
+
+      const baseY = p.topHeight + pipeGap;
+
+      ctx.beginPath();
+
+      // start left
+      ctx.moveTo(p.x, viewHeight());
+
+      // jagged mountain peaks
+      const steps = 6;
+      const stepWidth = pipeWidth / steps;
+
+      for (let i = 0; i <= steps; i++) {
+        const x = p.x + i * stepWidth;
+        const peakOffset = (Math.random() - 0.5) * 40;
+
+        ctx.lineTo(x, baseY + peakOffset);
+      }
+
+      // right side down
+      ctx.lineTo(p.x + pipeWidth, viewHeight());
+
+      ctx.closePath();
+      ctx.fill();
     }
 
     // ===== LIGHTNING =====
@@ -158,7 +180,6 @@ const obstacles = (() => {
 
     ctx.stroke();
 
-    // white core
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 1;
 
