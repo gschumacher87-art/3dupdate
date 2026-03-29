@@ -27,8 +27,8 @@ resize();
 let gameOver = false;
 let lastTime = performance.now();
 
-// ===== STATS =====
-let stats = {
+// ===== GLOBAL STATS (FIXED) =====
+window.stats = {
   time: 0,
   enemies: 0,
   trees: 0
@@ -46,9 +46,9 @@ if (saved) best = JSON.parse(saved);
 
 // ===== SAVE BEST =====
 function saveBest() {
-  if (stats.time > best.time) best.time = stats.time;
-  if (stats.enemies > best.enemies) best.enemies = stats.enemies;
-  if (stats.trees > best.trees) best.trees = stats.trees;
+  if (window.stats.time > best.time) best.time = window.stats.time;
+  if (window.stats.enemies > best.enemies) best.enemies = window.stats.enemies;
+  if (window.stats.trees > best.trees) best.trees = window.stats.trees;
 
   localStorage.setItem('dragon_best', JSON.stringify(best));
 }
@@ -136,9 +136,9 @@ function resetGame() {
   gameOver = false;
   lastTime = performance.now();
 
-  stats.time = 0;
-  stats.enemies = 0;
-  stats.trees = 0;
+  window.stats.time = 0;
+  window.stats.enemies = 0;
+  window.stats.trees = 0;
 
   dragon.reset(viewWidth, viewHeight);
   obstacles.reset();
@@ -173,7 +173,7 @@ function loop(time) {
 
     if (!gameOver) {
 
-      stats.time += deltaTime / 1000;
+      window.stats.time += deltaTime / 1000;
 
       const d = dragon.get();
 
@@ -198,7 +198,7 @@ function loop(time) {
         viewWidth,
         d,
         () => {
-          stats.trees++; // tree cleared hook
+          window.stats.trees++; // FIXED
         },
         () => {
           gameOver = true;
@@ -221,9 +221,9 @@ function loop(time) {
     ctx.fillStyle = 'white';
     ctx.font = '20px Arial';
 
-    ctx.fillText(`Time: ${stats.time.toFixed(1)}s`, 20, 30);
-    ctx.fillText(`Enemies: ${stats.enemies}`, 20, 55);
-    ctx.fillText(`Trees: ${stats.trees}`, 20, 80);
+    ctx.fillText(`Time: ${window.stats.time.toFixed(1)}s`, 20, 30);
+    ctx.fillText(`Enemies: ${window.stats.enemies}`, 20, 55);
+    ctx.fillText(`Trees: ${window.stats.trees}`, 20, 80);
 
     if (gameOver) {
       ctx.font = '26px Arial';
