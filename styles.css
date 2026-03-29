@@ -11,6 +11,7 @@ html, body {
   touch-action: manipulation;
 }
 
+/* ===== CANVAS ===== */
 canvas {
   display: block;
   width: 100vw;
@@ -20,9 +21,45 @@ canvas {
   -webkit-touch-callout: none;
 }
 
+/* ===== BUTTON ===== */
 button {
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   outline: none;
+}
+
+/* ===== HOME SCREEN ===== */
+#homeScreen {
+  position: absolute;
+  inset: 0;
+  background: black;
+  color: white;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 20;
+  text-align: center;
+}
+
+#homeScreen h1 {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+#stats {
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+#playBtn {
+  font-size: 24px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: none;
+  background: orange;
+  color: white;
 }
