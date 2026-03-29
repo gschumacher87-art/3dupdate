@@ -46,7 +46,7 @@ const enemies = (() => {
           y,
           size: 20,
           dead: false,
-          counted: false, // 👈 prevents double count
+          counted: false,
           type: 'ground'
         });
 
@@ -68,7 +68,7 @@ const enemies = (() => {
       y,
       size: 20,
       dead: false,
-      counted: false, // 👈 same here
+      counted: false,
       type: 'ghost',
       wave: Math.random() * Math.PI * 2
     });
@@ -76,10 +76,8 @@ const enemies = (() => {
 
   function update(viewWidth, viewHeight, dragon, onHit) {
 
-    // ===== SPAWN =====
     if (Math.random() < 0.02) spawn(viewWidth);
 
-    // ===== MOVE / COLLISION =====
     for (const e of list) {
       if (!e || e.dead) continue;
 
@@ -103,7 +101,6 @@ const enemies = (() => {
         if (e.y > viewHeight() * 0.7) e.y = viewHeight() * 0.7;
       }
 
-      // ===== DRAGON HIT =====
       const dx = e.x - dragon.x;
       const dy = e.y - dragon.y;
 
@@ -112,7 +109,6 @@ const enemies = (() => {
       }
     }
 
-    // ===== FIREBALL HIT =====
     const fireballs = window.dragon.getFireballs();
 
     for (const f of fireballs) {
@@ -128,7 +124,6 @@ const enemies = (() => {
           e.dead = true;
           f.dead = true;
 
-          // ===== COUNT ENEMY (FIX) =====
           if (!e.counted) {
             e.counted = true;
             if (window.stats) window.stats.enemies++;
@@ -137,7 +132,6 @@ const enemies = (() => {
       }
     }
 
-    // ===== CLEANUP =====
     list = list.filter(e => e && !e.dead && e.x > -50);
   }
 
@@ -170,7 +164,10 @@ const enemies = (() => {
 
       } else if (e.type === 'ghost') {
 
-        ctx.strokeStyle = '#ffffff';
+        // ===== BODY =====
+        ctx.fillStyle = '#ffd400'; // yellow fill
+        ctx.strokeStyle = '#000000'; // black outline
+        ctx.lineWidth = 3;
 
         ctx.beginPath();
         ctx.arc(e.x, y - 8, 8, Math.PI, 0);
@@ -182,12 +179,14 @@ const enemies = (() => {
         ctx.lineTo(e.x - 8, y + 6);
 
         ctx.closePath();
+        ctx.fill();
         ctx.stroke();
 
+        // ===== EYES =====
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(e.x - 3, y - 4, 1.5, 0, Math.PI * 2);
-        ctx.arc(e.x + 3, y - 4, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
+        ctx.arc(e.x - 3, y - 4, 2, 0, Math.PI * 2);
+        ctx.arc(e.x + 3, y - 4, 2, 0, Math.PI * 2);
         ctx.fill();
       }
     }
