@@ -2,7 +2,6 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-// ✅ FIX: allow proper touch handling
 canvas.style.touchAction = 'manipulation';
 
 // ===== VIEW SIZE =====
@@ -58,12 +57,9 @@ const ground = (() => {
 
   function draw(ctx) {
     const w = Math.floor(viewWidth());
-
     ctx.fillStyle = '#2d5a27';
     ctx.fillRect(0, y, w, height);
-
     ctx.fillRect(0, y - 1, w, height + 2);
-
     ctx.fillStyle = '#3f7a36';
     ctx.fillRect(0, y, w, 4);
   }
@@ -73,6 +69,7 @@ const ground = (() => {
 
 // ===== INPUT =====
 let input = { up: false };
+let hold = false; // ✅ prevents micro drop
 
 function fire() {
   if (!gameOver) dragon.fire();
@@ -91,8 +88,6 @@ fireBtn.style.border = 'none';
 fireBtn.style.background = 'orange';
 fireBtn.style.color = 'white';
 fireBtn.style.zIndex = 10;
-
-// ✅ FIX: remove iOS highlight only
 fireBtn.style.webkitTapHighlightColor = 'transparent';
 
 document.body.appendChild(fireBtn);
@@ -106,10 +101,18 @@ window.addEventListener('touchstart', (e) => {
     return;
   }
 
+  hold = true;
   input.up = true;
 }, { passive: true });
 
-window.addEventListener('touchend', () => { input.up = false; });
+window.addEventListener('touchend', () => {
+  hold = false;
+
+  // ✅ delay prevents 1-frame drop
+  setTimeout(() => {
+    if (!hold) input.up = false;
+  }, 40);
+});
 
 window.addEventListener('mousedown', (e) => {
   if (e.target === fireBtn) return;
@@ -119,10 +122,17 @@ window.addEventListener('mousedown', (e) => {
     return;
   }
 
+  hold = true;
   input.up = true;
 });
 
-window.addEventListener('mouseup', () => { input.up = false; });
+window.addEventListener('mouseup', () => {
+  hold = false;
+
+  setTimeout(() => {
+    if (!hold) input.up = false;
+  }, 40);
+});
 
 fireBtn.addEventListener('touchstart', (e) => {
   e.preventDefault();
@@ -141,13 +151,17 @@ window.addEventListener('keydown', e => {
       resetGame();
       return;
     }
+    hold = true;
     input.up = true;
   }
   if (e.code === 'KeyF') fire();
 });
 
 window.addEventListener('keyup', e => {
-  if (e.code === 'Space' || e.code === 'ArrowUp') input.up = false;
+  if (e.code === 'Space' || e.code === 'ArrowUp') {
+    hold = false;
+    input.up = false;
+  }
 });
 
 // ===== RESET =====
