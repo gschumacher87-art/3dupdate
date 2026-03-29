@@ -85,7 +85,7 @@ const obstacles = (() => {
     const t = Math.min(1, (window.stats?.time || 0) / 60);
     const spacing = 130 - (t * 30);
 
-    const tall = vh() * 0.5;
+    const tall = vh() * 0.55; // slightly taller = more pressure
     const short = vh() * 0.15;
 
     let height1, height2;
@@ -176,26 +176,24 @@ const obstacles = (() => {
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) onHit();
 
-    // ===== FIXED TREE COLLISION (TRUNK ONLY) =====
+    // ===== FIXED TREE COLLISION (CANOPY + TRUNK) =====
     for (const t of trees) {
 
-      const trunkX = t.x + t.width * 0.35;
-      const trunkW = t.width * 0.3;
-      const trunkY = t.y + t.height * 0.55;
-      const trunkH = t.height * 0.45;
+      if (t.burning) continue;
 
+      // full tree hitbox (no more top forgiveness)
       if (
-        dragon.x + dragon.size / 2 > trunkX &&
-        dragon.x - dragon.size / 2 < trunkX + trunkW &&
-        dragon.y + dragon.size / 2 > trunkY &&
-        dragon.y - dragon.size / 2 < trunkY + trunkH &&
-        !t.burning
+        dragon.x + dragon.size / 2 > t.x &&
+        dragon.x - dragon.size / 2 < t.x + t.width &&
+        dragon.y + dragon.size / 2 > t.y &&
+        dragon.y - dragon.size / 2 < t.y + t.height
       ) {
         onHit();
       }
     }
 
-    if (dragon.y - dragon.size / 2 < 30) onHit();
+    // ===== CEILING (prevents flying over everything) =====
+    if (dragon.y - dragon.size / 2 < 40) onHit();
 
     for (const s of strikes) s.life--;
     strikes = strikes.filter(s => s.life > 0);
@@ -232,21 +230,21 @@ const obstacles = (() => {
     const flicker = Math.random() * 30;
 
     ctx.fillStyle = `rgb(${70 + flicker}, ${70 + flicker}, ${70 + flicker})`;
-    ctx.fillRect(0, 0, vw(), 30);
+    ctx.fillRect(0, 0, vw(), 40);
 
     ctx.fillStyle = `rgb(${90 + flicker}, ${90 + flicker}, ${90 + flicker})`;
 
     ctx.beginPath();
-    ctx.moveTo(0, 30);
+    ctx.moveTo(0, 40);
     for (let x = 0; x <= vw(); x += 20) {
-      const y = 30 + Math.sin(x * 0.05 + Date.now() * 0.005) * 5;
+      const y = 40 + Math.sin(x * 0.05 + Date.now() * 0.005) * 5;
       ctx.lineTo(x, y);
     }
     ctx.closePath();
     ctx.fill();
 
     ctx.fillStyle = `rgba(0,0,0,0.2)`;
-    ctx.fillRect(0, 0, vw(), 15);
+    ctx.fillRect(0, 0, vw(), 20);
 
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     for (const c of clouds) {
