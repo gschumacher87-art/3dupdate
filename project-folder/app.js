@@ -4,6 +4,17 @@ ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'manipulation';
 
+// ===== HOME SCREEN =====
+const homeScreen = document.getElementById('homeScreen');
+const playBtn = document.getElementById('playBtn');
+const bestTimeText = document.getElementById('bestTime');
+const bestEnemiesText = document.getElementById('bestEnemies');
+
+function updateHomeStats() {
+  bestTimeText.innerText = `Best Time: ${best.time.toFixed(1)}s`;
+  bestEnemiesText.innerText = `Best Enemies: ${best.enemies}`;
+}
+
 // ===== VIEW SIZE =====
 const viewWidth = () => canvas.clientWidth;
 const viewHeight = () => canvas.clientHeight;
@@ -35,6 +46,7 @@ let best = { time: 0, enemies: 0, trees: 0 };
 const saved = localStorage.getItem('dragon_best');
 if (saved) best = JSON.parse(saved);
 
+// ===== SAVE BEST =====
 function saveBest() {
   if (window.stats.time > best.time) best.time = window.stats.time;
   if (window.stats.enemies > best.enemies) best.enemies = window.stats.enemies;
@@ -94,10 +106,11 @@ document.body.appendChild(fireBtn);
 
 // ===== INPUT =====
 window.addEventListener('touchstart', (e) => {
+  if (homeScreen.style.display !== 'none') return;
   if (e.target === fireBtn) return;
 
   if (gameOver) {
-    resetGame();
+    showHome();
     return;
   }
 
@@ -113,10 +126,11 @@ window.addEventListener('touchend', () => {
 });
 
 window.addEventListener('mousedown', (e) => {
+  if (homeScreen.style.display !== 'none') return;
   if (e.target === fireBtn) return;
 
   if (gameOver) {
-    resetGame();
+    showHome();
     return;
   }
 
@@ -143,9 +157,11 @@ fireBtn.addEventListener('click', (e) => {
 });
 
 window.addEventListener('keydown', e => {
+  if (homeScreen.style.display !== 'none') return;
+
   if (e.code === 'Space' || e.code === 'ArrowUp') {
     if (gameOver) {
-      resetGame();
+      showHome();
       return;
     }
     hold = true;
@@ -159,6 +175,23 @@ window.addEventListener('keyup', e => {
     hold = false;
     input.up = false;
   }
+});
+
+// ===== HOME CONTROL =====
+function showHome() {
+  updateHomeStats();
+  homeScreen.style.display = 'flex';
+}
+
+playBtn.addEventListener('click', () => {
+  homeScreen.style.display = 'none';
+  resetGame();
+
+  dragon.init(viewWidth, viewHeight);
+  obstacles.init(viewWidth, viewHeight);
+  enemies.init();
+
+  requestAnimationFrame(loop);
 });
 
 // ===== RESET =====
@@ -177,17 +210,17 @@ function resetGame() {
 
 // ===== START =====
 dragon.img.onload = () => {
-  dragon.init(viewWidth, viewHeight);
-  obstacles.init(viewWidth, viewHeight);
-  enemies.init();
-
-  requestAnimationFrame(loop);
+  showHome();
 };
 
 // ===== LOOP =====
 function loop(time) {
 
   try {
+
+    if (homeScreen.style.display !== 'none') {
+      return requestAnimationFrame(loop);
+    }
 
     const deltaTime = time - lastTime;
     if (deltaTime > 1000) {
@@ -207,7 +240,6 @@ function loop(time) {
 
       const d = dragon.get();
 
-      // ✅ SHRUNK HITBOX (FULL FIX)
       const hitbox = {
         x: d.x,
         y: d.y + d.size * 0.2,
@@ -264,12 +296,7 @@ function loop(time) {
 
     if (gameOver) {
       ctx.font = '26px Arial';
-      ctx.fillText('Game Over - tap to restart', 20, 120);
-
-      ctx.font = '18px Arial';
-      ctx.fillText(`Best Time: ${best.time.toFixed(1)}s`, 20, 160);
-      ctx.fillText(`Best Enemies: ${best.enemies}`, 20, 185);
-      ctx.fillText(`Best Trees: ${best.trees}`, 20, 210);
+      ctx.fillText('Game Over - tap to menu', 20, 120);
     }
 
   } catch (err) {
