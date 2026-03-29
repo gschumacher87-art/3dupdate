@@ -84,8 +84,14 @@ const ground = (() => {
 })();
 
 // ===== INPUT =====
+let input = { up: false };
+
 function flap() {
-  dragon.flap(gameOver, resetGame);
+  if (gameOver) {
+    resetGame();
+    return;
+  }
+  input.up = true;
 }
 
 function fire() {
@@ -109,26 +115,28 @@ fireBtn.style.zIndex = 10;
 document.body.appendChild(fireBtn);
 
 // ===== INPUT =====
-window.addEventListener('touchstart', () => flap(), { passive: true });
+window.addEventListener('touchstart', () => { input.up = true; }, { passive: true });
+window.addEventListener('touchend', () => { input.up = false; });
+
+window.addEventListener('mousedown', () => { input.up = true; });
+window.addEventListener('mouseup', () => { input.up = false; });
+
 window.addEventListener('click', flap);
 
 fireBtn.addEventListener('touchstart', (e) => {
   e.preventDefault();
   fire();
-  flap();
 }, { passive: false });
 
-fireBtn.addEventListener('click', () => {
-  fire();
-  flap();
-});
+fireBtn.addEventListener('click', fire);
 
 window.addEventListener('keydown', e => {
-  if (e.code === 'Space' || e.code === 'ArrowUp') flap();
-  if (e.code === 'KeyF') {
-    fire();
-    flap();
-  }
+  if (e.code === 'Space' || e.code === 'ArrowUp') input.up = true;
+  if (e.code === 'KeyF') fire();
+});
+
+window.addEventListener('keyup', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') input.up = false;
 });
 
 // ===== RESET =====
@@ -190,7 +198,8 @@ function loop(time) {
       dragon.update(
         viewWidth,
         viewHeight,
-        enemies.getList()
+        enemies.getList(),
+        input // ONLY ADDITION HERE
       );
 
       obstacles.update(
@@ -198,7 +207,7 @@ function loop(time) {
         viewWidth,
         d,
         () => {
-          window.stats.trees++; // FIXED
+          window.stats.trees++;
         },
         () => {
           gameOver = true;
