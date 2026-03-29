@@ -10,7 +10,6 @@ const enemies = (() => {
 
   // ===== SPAWN TYPES =====
   function spawn(viewWidth) {
-
     if (Math.random() < 0.5) {
       spawnGround(viewWidth);
     } else {
@@ -28,7 +27,6 @@ const enemies = (() => {
 
       const t1 = trees[i];
       const t2 = trees[i + 1];
-
       if (!t1 || !t2) continue;
 
       const gapStart = t1.x + t1.width;
@@ -48,6 +46,7 @@ const enemies = (() => {
           y,
           size: 20,
           dead: false,
+          counted: false, // 👈 prevents double count
           type: 'ground'
         });
 
@@ -69,6 +68,7 @@ const enemies = (() => {
       y,
       size: 20,
       dead: false,
+      counted: false, // 👈 same here
       type: 'ghost',
       wave: Math.random() * Math.PI * 2
     });
@@ -79,7 +79,7 @@ const enemies = (() => {
     // ===== SPAWN =====
     if (Math.random() < 0.02) spawn(viewWidth);
 
-    // ===== ENEMIES =====
+    // ===== MOVE / COLLISION =====
     for (const e of list) {
       if (!e || e.dead) continue;
 
@@ -96,7 +96,6 @@ const enemies = (() => {
 
       } else if (e.type === 'ghost') {
 
-        // smooth float
         e.wave += 0.08;
         e.y += Math.sin(e.wave) * 1.2;
 
@@ -104,7 +103,7 @@ const enemies = (() => {
         if (e.y > viewHeight() * 0.7) e.y = viewHeight() * 0.7;
       }
 
-      // ===== COLLISION (touch = hit) =====
+      // ===== DRAGON HIT =====
       const dx = e.x - dragon.x;
       const dy = e.y - dragon.y;
 
@@ -112,8 +111,6 @@ const enemies = (() => {
         if (onHit) onHit();
       }
     }
-
-    list = list.filter(e => e && !e.dead && e.x > -50);
 
     // ===== FIREBALL HIT =====
     const fireballs = window.dragon.getFireballs();
@@ -130,9 +127,18 @@ const enemies = (() => {
         ) {
           e.dead = true;
           f.dead = true;
+
+          // ===== COUNT ENEMY (FIX) =====
+          if (!e.counted) {
+            e.counted = true;
+            if (window.stats) window.stats.enemies++;
+          }
         }
       }
     }
+
+    // ===== CLEANUP =====
+    list = list.filter(e => e && !e.dead && e.x > -50);
   }
 
   function draw(ctx) {
@@ -164,14 +170,12 @@ const enemies = (() => {
 
       } else if (e.type === 'ghost') {
 
-        // simple ghost shape (canvas style)
         ctx.strokeStyle = '#ffffff';
 
         ctx.beginPath();
         ctx.arc(e.x, y - 8, 8, Math.PI, 0);
         ctx.lineTo(e.x + 8, y + 6);
 
-        // wavy bottom
         ctx.lineTo(e.x + 4, y + 2);
         ctx.lineTo(e.x, y + 6);
         ctx.lineTo(e.x - 4, y + 2);
@@ -180,7 +184,6 @@ const enemies = (() => {
         ctx.closePath();
         ctx.stroke();
 
-        // eyes
         ctx.beginPath();
         ctx.arc(e.x - 3, y - 4, 1.5, 0, Math.PI * 2);
         ctx.arc(e.x + 3, y - 4, 1.5, 0, Math.PI * 2);
