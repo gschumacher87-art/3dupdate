@@ -4,7 +4,7 @@ ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'manipulation';
 
-// ===== HOME SCREEN (FIXED CLEAN) =====
+// ===== HOME SCREEN =====
 let homeScreen, playBtn, bestTimeText, bestEnemiesText;
 
 function updateHomeStats() {
@@ -170,10 +170,9 @@ function resetGame() {
   enemies.reset();
 }
 
-// ===== START (CLEAN FIX) =====
+// ===== START (FIXED PROPERLY) =====
 function startGame() {
 
-  // grab DOM safely
   homeScreen = document.getElementById('homeScreen');
   playBtn = document.getElementById('playBtn');
   bestTimeText = document.getElementById('bestTime');
@@ -182,16 +181,17 @@ function startGame() {
   updateHomeStats();
   if (homeScreen) homeScreen.style.display = 'flex';
 
+  // ✅ INIT ONCE HERE (FIX)
+  dragon.init(viewWidth, viewHeight);
+  obstacles.init(viewWidth, viewHeight);
+  enemies.init();
+
   if (playBtn) {
     playBtn.onclick = () => {
 
       homeScreen.style.display = 'none';
 
       resetGame();
-
-      dragon.init(viewWidth, viewHeight);
-      obstacles.init(viewWidth, viewHeight);
-      enemies.init();
 
       gameOver = false;
     };
@@ -200,7 +200,7 @@ function startGame() {
   requestAnimationFrame(loop);
 }
 
-// ===== START SAFE (NO CACHE BUG) =====
+// ===== START SAFE =====
 window.addEventListener('load', startGame);
 
 // ===== LOOP =====
