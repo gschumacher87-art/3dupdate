@@ -31,8 +31,18 @@ function reset(viewWidth, viewHeight) {
 }
 
 // ===== UPDATE =====
-function update(viewWidth, viewHeight, enemies = []) {
-  velocity += gravity;
+function update(viewWidth, viewHeight, enemies = [], input) {
+
+  // ===== CONTROLLED FLIGHT =====
+  if (input && input.up) {
+    velocity -= 0.8;
+  } else {
+    velocity += 0.5;
+  }
+
+  if (velocity < -7) velocity = -7;
+  if (velocity > 7) velocity = 7;
+
   y += velocity;
 
   y = Math.round(y);
