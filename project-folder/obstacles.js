@@ -260,29 +260,33 @@ const obstacles = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // ===== TREES (FIXED LOOK) =====
+    // ===== TREES (FINAL FIX) =====
     for (const t of trees) {
 
       // trunk
       ctx.fillStyle = t.burning ? 'orange' : '#5b3a1e';
       ctx.fillRect(
-        t.x + t.width * 0.42,
+        t.x + t.width * 0.35,
         t.y + t.height * 0.55,
-        t.width * 0.16,
+        t.width * 0.3,
         t.height * 0.45
       );
 
-      // canopy
+      // canopy (stacked, not round)
       ctx.fillStyle = t.burning ? 'red' : '#2ecc71';
 
       ctx.beginPath();
-      ctx.arc(
-        t.x + t.width * 0.5,
-        t.y + t.height * 0.35,
-        t.width * 0.6,
-        0,
-        Math.PI * 2
-      );
+      ctx.moveTo(t.x, t.y + t.height * 0.6);
+      ctx.lineTo(t.x + t.width / 2, t.y + t.height * 0.2);
+      ctx.lineTo(t.x + t.width, t.y + t.height * 0.6);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(t.x + t.width * 0.1, t.y + t.height * 0.45);
+      ctx.lineTo(t.x + t.width / 2, t.y + t.height * 0.05);
+      ctx.lineTo(t.x + t.width * 0.9, t.y + t.height * 0.45);
+      ctx.closePath();
       ctx.fill();
     }
 
