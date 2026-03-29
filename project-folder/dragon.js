@@ -143,7 +143,12 @@ function draw(ctx) {
 
 // ===== DATA =====
 function get() {
-  return { x, y, size };
+  // ✅ SMALLER HITBOX (KEY FIX)
+  return {
+    x,
+    y: y + size * 0.1,
+    size: size * 0.7
+  };
 }
 
 function getFireballs() {
