@@ -86,14 +86,6 @@ const ground = (() => {
 // ===== INPUT =====
 let input = { up: false };
 
-function flap() {
-  if (gameOver) {
-    resetGame();
-    return;
-  }
-  input.up = true;
-}
-
 function fire() {
   if (!gameOver) dragon.fire();
 }
@@ -115,27 +107,51 @@ fireBtn.style.zIndex = 10;
 document.body.appendChild(fireBtn);
 
 // ===== INPUT =====
-window.addEventListener('touchstart', () => { input.up = true; }, { passive: true });
+window.addEventListener('touchstart', (e) => {
+  if (e.target === fireBtn) return;
+
+  if (gameOver) {
+    resetGame();
+    return;
+  }
+
+  input.up = true;
+}, { passive: true });
+
 window.addEventListener('touchend', () => { input.up = false; });
 
-window.addEventListener('mousedown', () => { input.up = true; });
-window.addEventListener('mouseup', () => { input.up = false; });
-
-// ✅ FIXED CLICK HANDLER
-window.addEventListener('click', (e) => {
+window.addEventListener('mousedown', (e) => {
   if (e.target === fireBtn) return;
-  flap();
+
+  if (gameOver) {
+    resetGame();
+    return;
+  }
+
+  input.up = true;
 });
+
+window.addEventListener('mouseup', () => { input.up = false; });
 
 fireBtn.addEventListener('touchstart', (e) => {
   e.preventDefault();
+  e.stopPropagation();
   fire();
 }, { passive: false });
 
-fireBtn.addEventListener('click', fire);
+fireBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  fire();
+});
 
 window.addEventListener('keydown', e => {
-  if (e.code === 'Space' || e.code === 'ArrowUp') input.up = true;
+  if (e.code === 'Space' || e.code === 'ArrowUp') {
+    if (gameOver) {
+      resetGame();
+      return;
+    }
+    input.up = true;
+  }
   if (e.code === 'KeyF') fire();
 });
 
