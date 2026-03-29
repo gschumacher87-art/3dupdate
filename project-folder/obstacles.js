@@ -73,20 +73,19 @@ const obstacles = (() => {
     return vh() - h;
   }
 
-  // ===== TREES (FIXED GAPS) =====
+  // ===== TREES =====
   let trees = [];
   let treeCooldown = 0;
 
   function spawnTreePair() {
     const baseX = vw();
 
-    const gapSize = 120 + Math.random() * 60; // BIG GAP
+    const gapSize = 120 + Math.random() * 60;
     const groundY = getGroundY(baseX);
 
     const height1 = Math.random() * 100 + 80;
     const height2 = Math.random() * 100 + 80;
 
-    // LEFT TREE
     trees.push({
       x: baseX,
       width: 40,
@@ -96,7 +95,6 @@ const obstacles = (() => {
       burnTime: 0
     });
 
-    // RIGHT TREE (after gap)
     trees.push({
       x: baseX + gapSize,
       width: 40,
@@ -147,7 +145,7 @@ const obstacles = (() => {
       });
     }
 
-    // TREES (PAIRS WITH GAP)
+    // TREES
     treeCooldown--;
     if (treeCooldown <= 0) spawnTreePair();
 
@@ -262,19 +260,29 @@ const obstacles = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // TREES
+    // ===== TREES (FIXED LOOK) =====
     for (const t of trees) {
 
+      // trunk
       ctx.fillStyle = t.burning ? 'orange' : '#5b3a1e';
-      ctx.fillRect(t.x + t.width / 3, t.y + t.height - 20, t.width / 3, 20);
+      ctx.fillRect(
+        t.x + t.width * 0.42,
+        t.y + t.height * 0.55,
+        t.width * 0.16,
+        t.height * 0.45
+      );
 
-      ctx.fillStyle = t.burning ? 'red' : 'green';
+      // canopy
+      ctx.fillStyle = t.burning ? 'red' : '#2ecc71';
 
       ctx.beginPath();
-      ctx.moveTo(t.x, t.y + 30);
-      ctx.lineTo(t.x + t.width / 2, t.y);
-      ctx.lineTo(t.x + t.width, t.y + 30);
-      ctx.closePath();
+      ctx.arc(
+        t.x + t.width * 0.5,
+        t.y + t.height * 0.35,
+        t.width * 0.6,
+        0,
+        Math.PI * 2
+      );
       ctx.fill();
     }
 
