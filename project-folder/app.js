@@ -35,7 +35,7 @@ window.addEventListener('resize', resize);
 resize();
 
 // ===== GAME STATE =====
-let gameOver = false;
+let gameOver = true; // start at menu
 let lastTime = performance.now();
 
 // ===== GLOBAL STATS =====
@@ -109,11 +109,6 @@ window.addEventListener('touchstart', (e) => {
   if (homeScreen.style.display !== 'none') return;
   if (e.target === fireBtn) return;
 
-  if (gameOver) {
-    showHome();
-    return;
-  }
-
   hold = true;
   input.up = true;
 }, { passive: true });
@@ -128,11 +123,6 @@ window.addEventListener('touchend', () => {
 window.addEventListener('mousedown', (e) => {
   if (homeScreen.style.display !== 'none') return;
   if (e.target === fireBtn) return;
-
-  if (gameOver) {
-    showHome();
-    return;
-  }
 
   hold = true;
   input.up = true;
@@ -160,10 +150,6 @@ window.addEventListener('keydown', e => {
   if (homeScreen.style.display !== 'none') return;
 
   if (e.code === 'Space' || e.code === 'ArrowUp') {
-    if (gameOver) {
-      showHome();
-      return;
-    }
     hold = true;
     input.up = true;
   }
@@ -177,26 +163,21 @@ window.addEventListener('keyup', e => {
   }
 });
 
-// ===== HOME CONTROL =====
-function showHome() {
-  updateHomeStats();
-  homeScreen.style.display = 'flex';
-}
-
+// ===== PLAY BUTTON =====
 playBtn.addEventListener('click', () => {
   homeScreen.style.display = 'none';
+
   resetGame();
 
   dragon.init(viewWidth, viewHeight);
   obstacles.init(viewWidth, viewHeight);
   enemies.init();
 
-  requestAnimationFrame(loop);
+  gameOver = false;
 });
 
 // ===== RESET =====
 function resetGame() {
-  gameOver = false;
   lastTime = performance.now();
 
   window.stats.time = 0;
@@ -210,7 +191,9 @@ function resetGame() {
 
 // ===== START =====
 dragon.img.onload = () => {
-  showHome();
+  updateHomeStats();
+  homeScreen.style.display = 'flex';
+  requestAnimationFrame(loop);
 };
 
 // ===== LOOP =====
@@ -218,15 +201,7 @@ function loop(time) {
 
   try {
 
-    if (homeScreen.style.display !== 'none') {
-      return requestAnimationFrame(loop);
-    }
-
     const deltaTime = time - lastTime;
-    if (deltaTime > 1000) {
-      lastTime = time;
-      return requestAnimationFrame(loop);
-    }
     lastTime = time;
 
     ctx.fillStyle = 'black';
@@ -246,39 +221,29 @@ function loop(time) {
         size: d.size * 0.6
       };
 
-      enemies.update(
-        viewWidth,
-        viewHeight,
-        hitbox,
-        () => {
-          gameOver = true;
-          saveBest();
-        }
-      );
+      enemies.update(viewWidth, viewHeight, hitbox, () => {
+        gameOver = true;
+        saveBest();
+        updateHomeStats();
+        homeScreen.style.display = 'flex';
+      });
 
-      dragon.update(
-        viewWidth,
-        viewHeight,
-        enemies.getList(),
-        input
-      );
+      dragon.update(viewWidth, viewHeight, enemies.getList(), input);
 
-      obstacles.update(
-        viewHeight,
-        viewWidth,
-        hitbox,
-        () => {
-          window.stats.trees++;
-        },
-        () => {
-          gameOver = true;
-          saveBest();
-        }
-      );
+      obstacles.update(viewHeight, viewWidth, hitbox, () => {
+        window.stats.trees++;
+      }, () => {
+        gameOver = true;
+        saveBest();
+        updateHomeStats();
+        homeScreen.style.display = 'flex';
+      });
 
       if (hitbox.y + hitbox.size / 2 > ground.getY()) {
         gameOver = true;
         saveBest();
+        updateHomeStats();
+        homeScreen.style.display = 'flex';
       }
     }
 
@@ -293,11 +258,6 @@ function loop(time) {
     ctx.fillText(`Time: ${window.stats.time.toFixed(1)}s`, 20, 30);
     ctx.fillText(`Enemies: ${window.stats.enemies}`, 20, 55);
     ctx.fillText(`Trees: ${window.stats.trees}`, 20, 80);
-
-    if (gameOver) {
-      ctx.font = '26px Arial';
-      ctx.fillText('Game Over - tap to menu', 20, 120);
-    }
 
   } catch (err) {
     console.error('LOOP CRASH:', err);
