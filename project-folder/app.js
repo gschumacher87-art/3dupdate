@@ -4,11 +4,8 @@ ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'manipulation';
 
-// ===== HOME SCREEN =====
-const homeScreen = document.getElementById('homeScreen');
-const playBtn = document.getElementById('playBtn');
-const bestTimeText = document.getElementById('bestTime');
-const bestEnemiesText = document.getElementById('bestEnemies');
+// ===== HOME SCREEN (FIXED) =====
+let homeScreen, playBtn, bestTimeText, bestEnemiesText;
 
 function updateHomeStats() {
   bestTimeText.innerText = `Best Time: ${best.time.toFixed(1)}s`;
@@ -106,7 +103,7 @@ document.body.appendChild(fireBtn);
 
 // ===== INPUT =====
 window.addEventListener('touchstart', (e) => {
-  if (homeScreen.style.display !== 'none') return;
+  if (!homeScreen || homeScreen.style.display !== 'none') return;
   if (e.target === fireBtn) return;
 
   hold = true;
@@ -119,7 +116,7 @@ window.addEventListener('touchend', () => {
 });
 
 window.addEventListener('mousedown', (e) => {
-  if (homeScreen.style.display !== 'none') return;
+  if (!homeScreen || homeScreen.style.display !== 'none') return;
   if (e.target === fireBtn) return;
 
   hold = true;
@@ -143,7 +140,7 @@ fireBtn.addEventListener('click', (e) => {
 });
 
 window.addEventListener('keydown', e => {
-  if (homeScreen.style.display !== 'none') return;
+  if (!homeScreen || homeScreen.style.display !== 'none') return;
 
   if (e.code === 'Space' || e.code === 'ArrowUp') {
     hold = true;
@@ -159,19 +156,6 @@ window.addEventListener('keyup', e => {
   }
 });
 
-// ===== PLAY BUTTON =====
-playBtn.addEventListener('click', () => {
-  homeScreen.style.display = 'none';
-
-  resetGame();
-
-  dragon.init(viewWidth, viewHeight);
-  obstacles.init(viewWidth, viewHeight);
-  enemies.init();
-
-  gameOver = false;
-});
-
 // ===== RESET =====
 function resetGame() {
   lastTime = performance.now();
@@ -185,13 +169,36 @@ function resetGame() {
   enemies.reset();
 }
 
-// ===== START (FIXED) =====
+// ===== START (FULL FIX) =====
 function startGame() {
+
+  // ✅ DOM SAFE
+  homeScreen = document.getElementById('homeScreen');
+  playBtn = document.getElementById('playBtn');
+  bestTimeText = document.getElementById('bestTime');
+  bestEnemiesText = document.getElementById('bestEnemies');
+
   updateHomeStats();
   homeScreen.style.display = 'flex';
+
+  // ✅ BUTTON WORKS NOW
+  playBtn.addEventListener('click', () => {
+
+    homeScreen.style.display = 'none';
+
+    resetGame();
+
+    dragon.init(viewWidth, viewHeight);
+    obstacles.init(viewWidth, viewHeight);
+    enemies.init();
+
+    gameOver = false;
+  });
+
   requestAnimationFrame(loop);
 }
 
+// ✅ IMAGE CACHE FIX
 if (dragon.img.complete) {
   startGame();
 } else {
@@ -266,5 +273,4 @@ function loop(time) {
   }
 
   requestAnimationFrame(loop);
-}
 }
