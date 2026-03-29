@@ -59,7 +59,6 @@ const obstacles = (() => {
     }
   }
 
-  // ===== FIXED GROUND (NO JUMPING) =====
   function getGroundY(x) {
     for (let i = 0; i < mountain.length - 1; i++) {
       const m1 = mountain[i];
@@ -85,26 +84,26 @@ const obstacles = (() => {
 
     const t = Math.min(1, (window.stats?.time || 0) / 60);
 
-    // spacing between trees (natural look)
     const spacing = 130 - (t * 30);
+
+    // ===== FIXED HEIGHTS (THIS IS THE CHANGE) =====
+    const tall = vh() * 0.5;
+    const short = vh() * 0.15;
 
     let height1, height2;
 
     if (Math.random() < 0.5) {
-      // strong LOW → HIGH
-      height1 = 200;
-      height2 = 60;
+      height1 = tall;
+      height2 = short;
     } else {
-      // strong HIGH → LOW
-      height1 = 60;
-      height2 = 200;
+      height1 = short;
+      height2 = tall;
     }
 
-    // slight variation (keeps natural feel)
-    height1 += (Math.random() - 0.5) * 10;
-    height2 += (Math.random() - 0.5) * 10;
+    // small natural variation
+    height1 += (Math.random() - 0.5) * 20;
+    height2 += (Math.random() - 0.5) * 20;
 
-    // FIRST TREE
     trees.push({
       x: baseX,
       width: 40,
@@ -115,7 +114,6 @@ const obstacles = (() => {
       counted: false
     });
 
-    // SECOND TREE (spaced — NOT stacked)
     trees.push({
       x: baseX + spacing,
       width: 40,
@@ -168,10 +166,8 @@ const obstacles = (() => {
     if (treeCooldown <= 0) spawnTreePair();
 
     for (const t of trees) {
-
       t.x -= groundSpeed;
 
-      // HARD LOCK (no smoothing = no wobble)
       const gy = getGroundY(t.x);
       t.y = gy - t.height;
 
@@ -227,9 +223,7 @@ const obstacles = (() => {
     }
   }
 
-  // ===== DRAW (unchanged) =====
   function draw(ctx) {
-
     const flicker = Math.random() * 30;
 
     ctx.fillStyle = `rgb(${70 + flicker}, ${70 + flicker}, ${70 + flicker})`;
@@ -268,7 +262,6 @@ const obstacles = (() => {
     ctx.fill();
 
     for (const t of trees) {
-
       ctx.fillStyle = t.burning ? 'orange' : '#5b3a1e';
       ctx.fillRect(
         t.x + t.width * 0.35,
