@@ -1,9 +1,40 @@
-body {
+/* ===== GLOBAL RESET ===== */
+html, body {
   margin: 0;
+  padding: 0;
   overflow: hidden;
   background: black;
+
+  /* 🔥 kill iOS highlight + selection */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+
+  /* prevent long press zoom / weird gestures */
+  touch-action: manipulation;
 }
 
+/* ===== CANVAS ===== */
 canvas {
   display: block;
+  width: 100vw;
+  height: 100vh;
+
+  /* no highlight */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ===== BUTTON (your fire button) ===== */
+button {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+
+  /* removes grey flash on tap (iOS) */
+  -webkit-tap-highlight-color: transparent;
+
+  /* prevents text cursor / selection */
+  outline: none;
 }
