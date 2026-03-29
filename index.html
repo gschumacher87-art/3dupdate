@@ -8,26 +8,19 @@
 </head>
 <body>
 
-<!-- ===== HOME SCREEN ===== -->
 <div id="homeScreen">
   <h1>Dragon Game</h1>
-
-  <div id="stats">
-    <p id="bestTime">Best Time: 0</p>
-    <p id="bestEnemies">Best Enemies: 0</p>
-  </div>
-
+  <p id="bestTime"></p>
+  <p id="bestEnemies"></p>
   <button id="playBtn">PLAY</button>
 </div>
 
-<!-- ===== GAME CANVAS ===== -->
 <canvas id="gameCanvas"></canvas>
 
-<!-- ✅ LOAD AFTER DOM (FIX) -->
-<script defer src="project-folder/dragon.js"></script>
-<script defer src="project-folder/obstacles.js"></script>
-<script defer src="project-folder/enemies.js"></script>
-<script defer src="project-folder/app.js"></script>
+<script src="project-folder/dragon.js"></script>
+<script src="project-folder/obstacles.js"></script>
+<script src="project-folder/enemies.js"></script>
+<script src="project-folder/app.js"></script>
 
 </body>
 </html>
