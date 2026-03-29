@@ -69,7 +69,7 @@ const ground = (() => {
 
 // ===== INPUT =====
 let input = { up: false };
-let hold = false; // ✅ prevents micro drop
+let hold = false;
 
 function fire() {
   if (!gameOver) dragon.fire();
@@ -107,8 +107,6 @@ window.addEventListener('touchstart', (e) => {
 
 window.addEventListener('touchend', () => {
   hold = false;
-
-  // ✅ delay prevents 1-frame drop
   setTimeout(() => {
     if (!hold) input.up = false;
   }, 40);
@@ -128,7 +126,6 @@ window.addEventListener('mousedown', (e) => {
 
 window.addEventListener('mouseup', () => {
   hold = false;
-
   setTimeout(() => {
     if (!hold) input.up = false;
   }, 40);
@@ -210,10 +207,17 @@ function loop(time) {
 
       const d = dragon.get();
 
+      // ✅ SHRUNK HITBOX (FULL FIX)
+      const hitbox = {
+        x: d.x,
+        y: d.y + d.size * 0.2,
+        size: d.size * 0.6
+      };
+
       enemies.update(
         viewWidth,
         viewHeight,
-        d,
+        hitbox,
         () => {
           gameOver = true;
           saveBest();
@@ -230,7 +234,7 @@ function loop(time) {
       obstacles.update(
         viewHeight,
         viewWidth,
-        d,
+        hitbox,
         () => {
           window.stats.trees++;
         },
@@ -240,7 +244,7 @@ function loop(time) {
         }
       );
 
-      if (d.y + d.size / 2 > ground.getY()) {
+      if (hitbox.y + hitbox.size / 2 > ground.getY()) {
         gameOver = true;
         saveBest();
       }
