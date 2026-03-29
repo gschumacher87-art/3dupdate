@@ -8,51 +8,9 @@ const enemies = (() => {
     list = [];
   }
 
-  // ===== SPAWN TYPES =====
+  // ===== SPAWN (GHOSTS ONLY) =====
   function spawn(viewWidth) {
-    if (Math.random() < 0.5) {
-      spawnGround(viewWidth);
-    } else {
-      spawnFlying(viewWidth);
-    }
-  }
-
-  // ===== GROUND GAP ENEMY =====
-  function spawnGround(viewWidth) {
-
-    const trees = obstacles.getTrees ? obstacles.getTrees() : [];
-    if (!trees || trees.length < 2) return;
-
-    for (let i = 0; i < trees.length - 1; i++) {
-
-      const t1 = trees[i];
-      const t2 = trees[i + 1];
-      if (!t1 || !t2) continue;
-
-      const gapStart = t1.x + t1.width;
-      const gapEnd = t2.x;
-      const gapSize = gapEnd - gapStart;
-
-      if (gapSize > 120) {
-
-        const SPAWN_OFFSET = 120;
-        const x = gapStart + gapSize / 2 + SPAWN_OFFSET;
-
-        const groundY = obstacles.getGroundY(x);
-        const y = groundY - (80 + gapSize * 0.3);
-
-        list.push({
-          x,
-          y,
-          size: 20,
-          dead: false,
-          counted: false,
-          type: 'ground'
-        });
-
-        return;
-      }
-    }
+    spawnFlying(viewWidth);
   }
 
   // ===== FLYING GHOST =====
@@ -83,16 +41,7 @@ const enemies = (() => {
 
       e.x -= 3;
 
-      if (e.type === 'ground') {
-
-        const groundY = obstacles.getGroundY(e.x);
-        const ceiling = 40;
-        const floor = groundY - 40;
-
-        if (e.y > floor) e.y = floor;
-        if (e.y < ceiling) e.y = ceiling;
-
-      } else if (e.type === 'ghost') {
+      if (e.type === 'ghost') {
 
         e.wave += 0.08;
         e.y += Math.sin(e.wave) * 1.2;
@@ -144,29 +93,11 @@ const enemies = (() => {
 
       const y = e.y;
 
-      if (e.type === 'ground') {
-
-        ctx.strokeStyle = '#ffcc00';
-
-        ctx.beginPath();
-        ctx.arc(e.x, y - 12, 4, 0, Math.PI * 2);
-        ctx.moveTo(e.x, y - 8);
-        ctx.lineTo(e.x, y);
-        ctx.moveTo(e.x, y - 5);
-        ctx.lineTo(e.x - 5, y - 2);
-        ctx.moveTo(e.x, y - 5);
-        ctx.lineTo(e.x + 5, y - 2);
-        ctx.moveTo(e.x, y);
-        ctx.lineTo(e.x - 4, y + 6);
-        ctx.moveTo(e.x, y);
-        ctx.lineTo(e.x + 4, y + 6);
-        ctx.stroke();
-
-      } else if (e.type === 'ghost') {
+      if (e.type === 'ghost') {
 
         // ===== BODY =====
         ctx.fillStyle = '#ffd400'; // yellow fill
-        ctx.strokeStyle = '#000000'; // black outline
+        ctx.strokeStyle = '#ffffff'; // ✅ WHITE outline (changed)
         ctx.lineWidth = 3;
 
         ctx.beginPath();
