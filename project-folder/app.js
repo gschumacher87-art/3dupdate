@@ -121,7 +121,11 @@ window.addEventListener('touchend', () => { input.up = false; });
 window.addEventListener('mousedown', () => { input.up = true; });
 window.addEventListener('mouseup', () => { input.up = false; });
 
-window.addEventListener('click', flap);
+// ✅ FIXED CLICK HANDLER
+window.addEventListener('click', (e) => {
+  if (e.target === fireBtn) return;
+  flap();
+});
 
 fireBtn.addEventListener('touchstart', (e) => {
   e.preventDefault();
@@ -199,7 +203,7 @@ function loop(time) {
         viewWidth,
         viewHeight,
         enemies.getList(),
-        input // ONLY ADDITION HERE
+        input
       );
 
       obstacles.update(
@@ -226,7 +230,6 @@ function loop(time) {
     ground.draw(ctx);
     dragon.draw(ctx);
 
-    // ===== UI =====
     ctx.fillStyle = 'white';
     ctx.font = '20px Arial';
 
