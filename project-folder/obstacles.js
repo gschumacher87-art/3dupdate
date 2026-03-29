@@ -78,13 +78,35 @@ const obstacles = (() => {
   let treeCooldown = 0;
 
   function spawnTreePair() {
-    const baseX = vw();
 
-    const gapSize = 120 + Math.random() * 60;
+    const baseX = vw();
     const groundY = getGroundY(baseX);
 
-    const height1 = Math.random() * 100 + 80;
-    const height2 = Math.random() * 100 + 80;
+    // ===== DIFFICULTY SCALE =====
+    const t = Math.min(1, (window.stats?.time || 0) / 60);
+
+    const gapSize = 140 - (t * 40) + Math.random() * 20;
+
+    // ===== PATTERN =====
+    const pattern = Math.random();
+
+    let height1, height2;
+
+    if (pattern < 0.33) {
+      // LOW GAP (forces drop)
+      height1 = 160 + Math.random() * 40;
+      height2 = 60 + Math.random() * 40;
+
+    } else if (pattern < 0.66) {
+      // HIGH GAP (forces climb)
+      height1 = 60 + Math.random() * 40;
+      height2 = 160 + Math.random() * 40;
+
+    } else {
+      // MID (tight)
+      height1 = 100 + Math.random() * 60;
+      height2 = 100 + Math.random() * 60;
+    }
 
     trees.push({
       x: baseX,
@@ -93,7 +115,7 @@ const obstacles = (() => {
       y: groundY - height1,
       burning: false,
       burnTime: 0,
-      counted: false // ✅ prevent double score
+      counted: false
     });
 
     trees.push({
@@ -106,7 +128,7 @@ const obstacles = (() => {
       counted: false
     });
 
-    treeCooldown = 140 + Math.random() * 80;
+    treeCooldown = 140 - (t * 60) + Math.random() * 40;
   }
 
   // ===== INIT =====
@@ -152,7 +174,13 @@ const obstacles = (() => {
     if (treeCooldown <= 0) spawnTreePair();
 
     for (const t of trees) {
+
       t.x -= groundSpeed;
+
+      // ===== LOCK TO GROUND (FIX) =====
+      const groundY = getGroundY(t.x);
+      t.y = groundY - t.height;
+
       if (t.burning) t.burnTime--;
     }
 
@@ -202,13 +230,11 @@ const obstacles = (() => {
           t.burnTime = 30;
           f.dead = true;
 
-          // ===== SCORE TREE (FIXED) =====
           if (!t.counted) {
             t.counted = true;
             if (onScore) onScore();
           }
 
-          // kill nearby enemies
           if (typeof enemies !== 'undefined' && enemies.getList) {
             const list = enemies.getList();
 
