@@ -1,7 +1,6 @@
 const obstacles = (() => {
 
   let vw, vh;
-
   const groundSpeed = 3;
 
   // ===== CLOUDS =====
@@ -60,17 +59,19 @@ const obstacles = (() => {
     }
   }
 
+  // ===== SMOOTH GROUND (FIXES JUMPING) =====
   function getGroundY(x) {
-    const i = Math.floor(x / segmentWidth);
-    const m1 = mountain[i];
-    const m2 = mountain[i + 1];
+    for (let i = 0; i < mountain.length - 1; i++) {
+      const m1 = mountain[i];
+      const m2 = mountain[i + 1];
 
-    if (!m1 || !m2) return vh();
-
-    const t = (x % segmentWidth) / segmentWidth;
-    const h = m1.height * (1 - t) + m2.height * t;
-
-    return vh() - h;
+      if (x >= m1.x && x <= m2.x) {
+        const t = (x - m1.x) / (m2.x - m1.x);
+        const h = m1.height * (1 - t) + m2.height * t;
+        return vh() - h;
+      }
+    }
+    return vh();
   }
 
   // ===== TREES =====
@@ -82,60 +83,57 @@ const obstacles = (() => {
     const baseX = vw();
     const groundY = getGroundY(baseX);
 
-    // ===== DIFFICULTY SCALE =====
     const t = Math.min(1, (window.stats?.time || 0) / 60);
 
-    const gapSize = 140 - (t * 40) + Math.random() * 20;
+    // tighter over time
+    const gapSize = 150 - (t * 60);
 
-    // ===== PATTERN =====
+    const screenH = vh();
+
+    let gapCenter;
+
     const pattern = Math.random();
 
-    let height1, height2;
-
     if (pattern < 0.33) {
-      // LOW GAP (forces drop)
-      height1 = 160 + Math.random() * 40;
-      height2 = 60 + Math.random() * 40;
-
+      gapCenter = screenH * 0.75; // LOW
     } else if (pattern < 0.66) {
-      // HIGH GAP (forces climb)
-      height1 = 60 + Math.random() * 40;
-      height2 = 160 + Math.random() * 40;
-
+      gapCenter = screenH * 0.35; // HIGH
     } else {
-      // MID (tight)
-      height1 = 100 + Math.random() * 60;
-      height2 = 100 + Math.random() * 60;
+      gapCenter = screenH * 0.55; // MID
     }
+
+    gapCenter += (Math.random() - 0.5) * 30;
+
+    const heightTop = screenH - (gapCenter + gapSize / 2);
+    const heightBottom = gapCenter - gapSize / 2;
 
     trees.push({
       x: baseX,
       width: 40,
-      height: height1,
-      y: groundY - height1,
+      height: heightTop,
+      y: groundY - heightTop,
       burning: false,
       burnTime: 0,
       counted: false
     });
 
     trees.push({
-      x: baseX + gapSize,
+      x: baseX,
       width: 40,
-      height: height2,
-      y: groundY - height2,
+      height: heightBottom,
+      y: groundY - heightBottom,
       burning: false,
       burnTime: 0,
       counted: false
     });
 
-    treeCooldown = 140 - (t * 60) + Math.random() * 40;
+    treeCooldown = 140 - (t * 60);
   }
 
   // ===== INIT =====
   function init(viewWidth, viewHeight) {
     vw = viewWidth;
     vh = viewHeight;
-
     clouds = [];
     strikes = [];
     trees = [];
@@ -152,12 +150,10 @@ const obstacles = (() => {
   // ===== UPDATE =====
   function update(viewHeight, viewWidth, dragon, onScore, onHit) {
 
-    // CLOUDS
     if (Math.random() < 0.02) spawnCloud();
     for (const c of clouds) c.x -= groundSpeed * 0.3;
     clouds = clouds.filter(c => c.x > -100);
 
-    // MOUNTAIN
     for (const m of mountain) m.x -= groundSpeed;
 
     if (mountain.length && mountain[0].x < -segmentWidth) {
@@ -169,28 +165,24 @@ const obstacles = (() => {
       });
     }
 
-    // TREES
     treeCooldown--;
     if (treeCooldown <= 0) spawnTreePair();
 
     for (const t of trees) {
-
       t.x -= groundSpeed;
 
-      // ===== LOCK TO GROUND (FIX) =====
-      const groundY = getGroundY(t.x);
-      t.y = groundY - t.height;
+      // smooth lock
+      const gy = getGroundY(t.x);
+      t.y += ((gy - t.height) - t.y) * 0.35;
 
       if (t.burning) t.burnTime--;
     }
 
     trees = trees.filter(t => t.x > -50 && t.burnTime > -20);
 
-    // GROUND COLLISION
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) onHit();
 
-    // TREE COLLISION
     for (const t of trees) {
       if (
         dragon.x + dragon.size / 2 > t.x &&
@@ -202,15 +194,12 @@ const obstacles = (() => {
       }
     }
 
-    // CEILING
     if (dragon.y - dragon.size / 2 < 30) onHit();
 
-    // LIGHTNING
     for (const s of strikes) s.life--;
     strikes = strikes.filter(s => s.life > 0);
     if (Math.random() < 0.02) spawnStrike();
 
-    // FIREBALLS
     const fireballs = window.dragon.getFireballs();
 
     for (const f of fireballs) {
@@ -225,7 +214,6 @@ const obstacles = (() => {
           f.x < t.x + t.width &&
           f.y > t.y
         ) {
-
           t.burning = true;
           t.burnTime = 30;
           f.dead = true;
@@ -234,27 +222,12 @@ const obstacles = (() => {
             t.counted = true;
             if (onScore) onScore();
           }
-
-          if (typeof enemies !== 'undefined' && enemies.getList) {
-            const list = enemies.getList();
-
-            for (const e of list) {
-              if (!e) continue;
-
-              if (
-                Math.abs(e.x - t.x) < 40 &&
-                Math.abs(e.y - t.y) < t.height
-              ) {
-                e.dead = true;
-              }
-            }
-          }
         }
       }
     }
   }
 
-  // ===== DRAW =====
+  // ===== DRAW (unchanged visuals) =====
   function draw(ctx) {
 
     const flicker = Math.random() * 30;
@@ -276,7 +249,6 @@ const obstacles = (() => {
     ctx.fillStyle = `rgba(0,0,0,0.2)`;
     ctx.fillRect(0, 0, vw(), 15);
 
-    // CLOUDS
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     for (const c of clouds) {
       ctx.beginPath();
@@ -286,7 +258,6 @@ const obstacles = (() => {
       ctx.fill();
     }
 
-    // MOUNTAIN
     ctx.fillStyle = '#5c3b1e';
     ctx.beginPath();
     ctx.moveTo(0, vh());
@@ -296,7 +267,6 @@ const obstacles = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // TREES
     for (const t of trees) {
 
       ctx.fillStyle = t.burning ? 'orange' : '#5b3a1e';
@@ -315,16 +285,8 @@ const obstacles = (() => {
       ctx.lineTo(t.x + t.width, t.y + t.height * 0.6);
       ctx.closePath();
       ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(t.x + t.width * 0.1, t.y + t.height * 0.45);
-      ctx.lineTo(t.x + t.width / 2, t.y + t.height * 0.05);
-      ctx.lineTo(t.x + t.width * 0.9, t.y + t.height * 0.45);
-      ctx.closePath();
-      ctx.fill();
     }
 
-    // LIGHTNING
     for (const s of strikes) {
       ctx.strokeStyle = 'cyan';
       ctx.lineWidth = 2;
