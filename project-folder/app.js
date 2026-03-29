@@ -4,10 +4,11 @@ ctx.imageSmoothingEnabled = false;
 
 canvas.style.touchAction = 'manipulation';
 
-// ===== HOME SCREEN (FIXED) =====
+// ===== HOME SCREEN (FIXED CLEAN) =====
 let homeScreen, playBtn, bestTimeText, bestEnemiesText;
 
 function updateHomeStats() {
+  if (!bestTimeText || !bestEnemiesText) return;
   bestTimeText.innerText = `Best Time: ${best.time.toFixed(1)}s`;
   bestEnemiesText.innerText = `Best Enemies: ${best.enemies}`;
 }
@@ -103,7 +104,7 @@ document.body.appendChild(fireBtn);
 
 // ===== INPUT =====
 window.addEventListener('touchstart', (e) => {
-  if (!homeScreen || homeScreen.style.display !== 'none') return;
+  if (homeScreen && homeScreen.style.display !== 'none') return;
   if (e.target === fireBtn) return;
 
   hold = true;
@@ -116,7 +117,7 @@ window.addEventListener('touchend', () => {
 });
 
 window.addEventListener('mousedown', (e) => {
-  if (!homeScreen || homeScreen.style.display !== 'none') return;
+  if (homeScreen && homeScreen.style.display !== 'none') return;
   if (e.target === fireBtn) return;
 
   hold = true;
@@ -140,7 +141,7 @@ fireBtn.addEventListener('click', (e) => {
 });
 
 window.addEventListener('keydown', e => {
-  if (!homeScreen || homeScreen.style.display !== 'none') return;
+  if (homeScreen && homeScreen.style.display !== 'none') return;
 
   if (e.code === 'Space' || e.code === 'ArrowUp') {
     hold = true;
@@ -169,41 +170,38 @@ function resetGame() {
   enemies.reset();
 }
 
-// ===== START (FULL FIX) =====
+// ===== START (CLEAN FIX) =====
 function startGame() {
 
-  // ✅ DOM SAFE
+  // grab DOM safely
   homeScreen = document.getElementById('homeScreen');
   playBtn = document.getElementById('playBtn');
   bestTimeText = document.getElementById('bestTime');
   bestEnemiesText = document.getElementById('bestEnemies');
 
   updateHomeStats();
-  homeScreen.style.display = 'flex';
+  if (homeScreen) homeScreen.style.display = 'flex';
 
-  // ✅ BUTTON WORKS NOW
-  playBtn.addEventListener('click', () => {
+  if (playBtn) {
+    playBtn.onclick = () => {
 
-    homeScreen.style.display = 'none';
+      homeScreen.style.display = 'none';
 
-    resetGame();
+      resetGame();
 
-    dragon.init(viewWidth, viewHeight);
-    obstacles.init(viewWidth, viewHeight);
-    enemies.init();
+      dragon.init(viewWidth, viewHeight);
+      obstacles.init(viewWidth, viewHeight);
+      enemies.init();
 
-    gameOver = false;
-  });
+      gameOver = false;
+    };
+  }
 
   requestAnimationFrame(loop);
 }
 
-// ✅ IMAGE CACHE FIX
-if (dragon.img.complete) {
-  startGame();
-} else {
-  dragon.img.onload = startGame;
-}
+// ===== START SAFE (NO CACHE BUG) =====
+window.addEventListener('load', startGame);
 
 // ===== LOOP =====
 function loop(time) {
