@@ -2,7 +2,8 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-canvas.style.touchAction = 'none';
+// ✅ FIX: allow proper touch handling
+canvas.style.touchAction = 'manipulation';
 
 // ===== VIEW SIZE =====
 const viewWidth = () => canvas.clientWidth;
@@ -27,24 +28,14 @@ resize();
 let gameOver = false;
 let lastTime = performance.now();
 
-// ===== GLOBAL STATS (FIXED) =====
-window.stats = {
-  time: 0,
-  enemies: 0,
-  trees: 0
-};
+// ===== GLOBAL STATS =====
+window.stats = { time: 0, enemies: 0, trees: 0 };
 
-// ===== BEST (SAVED) =====
-let best = {
-  time: 0,
-  enemies: 0,
-  trees: 0
-};
-
+// ===== BEST =====
+let best = { time: 0, enemies: 0, trees: 0 };
 const saved = localStorage.getItem('dragon_best');
 if (saved) best = JSON.parse(saved);
 
-// ===== SAVE BEST =====
 function saveBest() {
   if (window.stats.time > best.time) best.time = window.stats.time;
   if (window.stats.enemies > best.enemies) best.enemies = window.stats.enemies;
@@ -55,7 +46,6 @@ function saveBest() {
 
 // ===== GROUND =====
 const ground = (() => {
-
   let height = 0;
   let y = 0;
 
@@ -64,9 +54,7 @@ const ground = (() => {
     y = Math.floor(viewHeight() - height);
   }
 
-  function getY() {
-    return y;
-  }
+  function getY() { return y; }
 
   function draw(ctx) {
     const w = Math.floor(viewWidth());
@@ -103,6 +91,9 @@ fireBtn.style.border = 'none';
 fireBtn.style.background = 'orange';
 fireBtn.style.color = 'white';
 fireBtn.style.zIndex = 10;
+
+// ✅ FIX: remove iOS highlight only
+fireBtn.style.webkitTapHighlightColor = 'transparent';
 
 document.body.appendChild(fireBtn);
 
