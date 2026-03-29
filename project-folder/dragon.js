@@ -101,6 +101,9 @@ function fire() {
     trail: [],
     dead: false
   });
+
+  // ✅ FIX: add slight lift when shooting (removes drop feel)
+  velocity -= 1;
 }
 
 // ===== DRAW =====
@@ -143,7 +146,6 @@ function draw(ctx) {
 
 // ===== DATA =====
 function get() {
-  // ✅ SMALLER HITBOX (KEY FIX)
   return {
     x,
     y: y + size * 0.1,
