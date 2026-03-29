@@ -92,7 +92,8 @@ const obstacles = (() => {
       height: height1,
       y: groundY - height1,
       burning: false,
-      burnTime: 0
+      burnTime: 0,
+      counted: false // ✅ prevent double score
     });
 
     trees.push({
@@ -101,7 +102,8 @@ const obstacles = (() => {
       height: height2,
       y: groundY - height2,
       burning: false,
-      burnTime: 0
+      burnTime: 0,
+      counted: false
     });
 
     treeCooldown = 140 + Math.random() * 80;
@@ -195,10 +197,18 @@ const obstacles = (() => {
           f.x < t.x + t.width &&
           f.y > t.y
         ) {
+
           t.burning = true;
           t.burnTime = 30;
           f.dead = true;
 
+          // ===== SCORE TREE (FIXED) =====
+          if (!t.counted) {
+            t.counted = true;
+            if (onScore) onScore();
+          }
+
+          // kill nearby enemies
           if (typeof enemies !== 'undefined' && enemies.getList) {
             const list = enemies.getList();
 
@@ -260,10 +270,9 @@ const obstacles = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // ===== TREES (FINAL FIX) =====
+    // TREES
     for (const t of trees) {
 
-      // trunk
       ctx.fillStyle = t.burning ? 'orange' : '#5b3a1e';
       ctx.fillRect(
         t.x + t.width * 0.35,
@@ -272,7 +281,6 @@ const obstacles = (() => {
         t.height * 0.45
       );
 
-      // canopy (stacked, not round)
       ctx.fillStyle = t.burning ? 'red' : '#2ecc71';
 
       ctx.beginPath();
