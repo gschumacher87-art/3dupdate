@@ -28,6 +28,39 @@ let gameOver = false;
 let score = 0;
 let lastTime = performance.now();
 
+// ===== GROUND (FIXED + CLEAN) =====
+const ground = (() => {
+
+  let height = 0;
+  let y = 0;
+
+  function update() {
+    height = Math.floor(viewHeight() * 0.15);
+    y = Math.floor(viewHeight() - height);
+  }
+
+  function getY() {
+    return y;
+  }
+
+  function draw(ctx) {
+    const w = Math.floor(viewWidth());
+
+    // main fill
+    ctx.fillStyle = '#2d5a27';
+    ctx.fillRect(0, y, w, height);
+
+    // overlap fix (kills 1px gaps on iPhone)
+    ctx.fillRect(0, y - 1, w, height + 2);
+
+    // grass top edge
+    ctx.fillStyle = '#3f7a36';
+    ctx.fillRect(0, y, w, 4);
+  }
+
+  return { update, draw, getY };
+})();
+
 // ===== INPUT =====
 function flap() {
   dragon.flap(gameOver, resetGame);
@@ -54,28 +87,20 @@ fireBtn.style.zIndex = 10;
 document.body.appendChild(fireBtn);
 
 // ===== INPUT HANDLING =====
-
-// TOUCH (screen)
-window.addEventListener('touchstart', (e) => {
-  flap();
-}, { passive: true });
-
-// CLICK (desktop)
+window.addEventListener('touchstart', () => flap(), { passive: true });
 window.addEventListener('click', flap);
 
-// FIRE BUTTON (FIXED)
 fireBtn.addEventListener('touchstart', (e) => {
   e.preventDefault();
   fire();
   flap();
 }, { passive: false });
 
-fireBtn.addEventListener('click', (e) => {
+fireBtn.addEventListener('click', () => {
   fire();
   flap();
 });
 
-// KEYBOARD
 window.addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'ArrowUp') flap();
   if (e.code === 'KeyF') {
@@ -116,8 +141,12 @@ function loop(time) {
     }
     lastTime = time;
 
+    // ===== CLEAR =====
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, viewWidth(), viewHeight());
+
+    // ===== UPDATE GROUND (CRITICAL) =====
+    ground.update();
 
     if (!gameOver) {
 
@@ -146,13 +175,22 @@ function loop(time) {
         () => gameOver = true
       );
 
-      if (d.y + d.size / 2 > viewHeight()) gameOver = true;
+      // ===== GROUND COLLISION (FIXED) =====
+      if (d.y + d.size / 2 > ground.getY()) {
+        gameOver = true;
+      }
     }
 
+    // ===== DRAW ORDER =====
     obstacles.draw(ctx);
     enemies.draw(ctx);
+
+    // ground seals everything clean
+    ground.draw(ctx);
+
     dragon.draw(ctx);
 
+    // ===== UI =====
     ctx.fillStyle = 'white';
     ctx.font = '24px Arial';
     ctx.fillText(`Score: ${Math.floor(score)}`, 20, 40);
