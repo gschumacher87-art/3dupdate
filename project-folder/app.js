@@ -25,10 +25,35 @@ resize();
 
 // ===== GAME STATE =====
 let gameOver = false;
-let score = 0;
 let lastTime = performance.now();
 
-// ===== GROUND (FIXED + CLEAN) =====
+// ===== STATS =====
+let stats = {
+  time: 0,
+  enemies: 0,
+  trees: 0
+};
+
+// ===== BEST (SAVED) =====
+let best = {
+  time: 0,
+  enemies: 0,
+  trees: 0
+};
+
+const saved = localStorage.getItem('dragon_best');
+if (saved) best = JSON.parse(saved);
+
+// ===== SAVE BEST =====
+function saveBest() {
+  if (stats.time > best.time) best.time = stats.time;
+  if (stats.enemies > best.enemies) best.enemies = stats.enemies;
+  if (stats.trees > best.trees) best.trees = stats.trees;
+
+  localStorage.setItem('dragon_best', JSON.stringify(best));
+}
+
+// ===== GROUND =====
 const ground = (() => {
 
   let height = 0;
@@ -46,14 +71,11 @@ const ground = (() => {
   function draw(ctx) {
     const w = Math.floor(viewWidth());
 
-    // main fill
     ctx.fillStyle = '#2d5a27';
     ctx.fillRect(0, y, w, height);
 
-    // overlap fix (kills 1px gaps on iPhone)
     ctx.fillRect(0, y - 1, w, height + 2);
 
-    // grass top edge
     ctx.fillStyle = '#3f7a36';
     ctx.fillRect(0, y, w, 4);
   }
@@ -86,7 +108,7 @@ fireBtn.style.zIndex = 10;
 
 document.body.appendChild(fireBtn);
 
-// ===== INPUT HANDLING =====
+// ===== INPUT =====
 window.addEventListener('touchstart', () => flap(), { passive: true });
 window.addEventListener('click', flap);
 
@@ -111,9 +133,12 @@ window.addEventListener('keydown', e => {
 
 // ===== RESET =====
 function resetGame() {
-  score = 0;
   gameOver = false;
   lastTime = performance.now();
+
+  stats.time = 0;
+  stats.enemies = 0;
+  stats.trees = 0;
 
   dragon.reset(viewWidth, viewHeight);
   obstacles.reset();
@@ -141,16 +166,14 @@ function loop(time) {
     }
     lastTime = time;
 
-    // ===== CLEAR =====
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, viewWidth(), viewHeight());
 
-    // ===== UPDATE GROUND (CRITICAL) =====
     ground.update();
 
     if (!gameOver) {
 
-      score += deltaTime / 1000;
+      stats.time += deltaTime / 1000;
 
       const d = dragon.get();
 
@@ -158,7 +181,10 @@ function loop(time) {
         viewWidth,
         viewHeight,
         d,
-        () => gameOver = true
+        () => {
+          gameOver = true;
+          saveBest();
+        }
       );
 
       dragon.update(
@@ -171,33 +197,42 @@ function loop(time) {
         viewHeight,
         viewWidth,
         d,
-        () => {},
-        () => gameOver = true
+        () => {
+          stats.trees++; // tree cleared hook
+        },
+        () => {
+          gameOver = true;
+          saveBest();
+        }
       );
 
-      // ===== GROUND COLLISION (FIXED) =====
       if (d.y + d.size / 2 > ground.getY()) {
         gameOver = true;
+        saveBest();
       }
     }
 
-    // ===== DRAW ORDER =====
     obstacles.draw(ctx);
     enemies.draw(ctx);
-
-    // ground seals everything clean
     ground.draw(ctx);
-
     dragon.draw(ctx);
 
     // ===== UI =====
     ctx.fillStyle = 'white';
-    ctx.font = '24px Arial';
-    ctx.fillText(`Score: ${Math.floor(score)}`, 20, 40);
+    ctx.font = '20px Arial';
+
+    ctx.fillText(`Time: ${stats.time.toFixed(1)}s`, 20, 30);
+    ctx.fillText(`Enemies: ${stats.enemies}`, 20, 55);
+    ctx.fillText(`Trees: ${stats.trees}`, 20, 80);
 
     if (gameOver) {
-      ctx.font = '28px Arial';
-      ctx.fillText('Game Over - tap to restart', 20, 80);
+      ctx.font = '26px Arial';
+      ctx.fillText('Game Over - tap to restart', 20, 120);
+
+      ctx.font = '18px Arial';
+      ctx.fillText(`Best Time: ${best.time.toFixed(1)}s`, 20, 160);
+      ctx.fillText(`Best Enemies: ${best.enemies}`, 20, 185);
+      ctx.fillText(`Best Trees: ${best.trees}`, 20, 210);
     }
 
   } catch (err) {
