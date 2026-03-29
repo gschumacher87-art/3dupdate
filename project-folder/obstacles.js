@@ -83,10 +83,8 @@ const obstacles = (() => {
     const groundY = getGroundY(baseX);
 
     const t = Math.min(1, (window.stats?.time || 0) / 60);
-
     const spacing = 130 - (t * 30);
 
-    // ===== FIXED HEIGHTS (THIS IS THE CHANGE) =====
     const tall = vh() * 0.5;
     const short = vh() * 0.15;
 
@@ -100,7 +98,6 @@ const obstacles = (() => {
       height2 = tall;
     }
 
-    // small natural variation
     height1 += (Math.random() - 0.5) * 20;
     height2 += (Math.random() - 0.5) * 20;
 
@@ -179,11 +176,19 @@ const obstacles = (() => {
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) onHit();
 
+    // ===== FIXED TREE COLLISION (TRUNK ONLY) =====
     for (const t of trees) {
+
+      const trunkX = t.x + t.width * 0.35;
+      const trunkW = t.width * 0.3;
+      const trunkY = t.y + t.height * 0.55;
+      const trunkH = t.height * 0.45;
+
       if (
-        dragon.x + dragon.size / 2 > t.x &&
-        dragon.x - dragon.size / 2 < t.x + t.width &&
-        dragon.y + dragon.size / 2 > t.y &&
+        dragon.x + dragon.size / 2 > trunkX &&
+        dragon.x - dragon.size / 2 < trunkX + trunkW &&
+        dragon.y + dragon.size / 2 > trunkY &&
+        dragon.y - dragon.size / 2 < trunkY + trunkH &&
         !t.burning
       ) {
         onHit();
