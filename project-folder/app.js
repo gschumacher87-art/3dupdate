@@ -35,7 +35,7 @@ window.addEventListener('resize', resize);
 resize();
 
 // ===== GAME STATE =====
-let gameOver = true; // start at menu
+let gameOver = true;
 let lastTime = performance.now();
 
 // ===== GLOBAL STATS =====
@@ -115,9 +115,7 @@ window.addEventListener('touchstart', (e) => {
 
 window.addEventListener('touchend', () => {
   hold = false;
-  setTimeout(() => {
-    if (!hold) input.up = false;
-  }, 40);
+  input.up = false;
 });
 
 window.addEventListener('mousedown', (e) => {
@@ -130,9 +128,7 @@ window.addEventListener('mousedown', (e) => {
 
 window.addEventListener('mouseup', () => {
   hold = false;
-  setTimeout(() => {
-    if (!hold) input.up = false;
-  }, 40);
+  input.up = false;
 });
 
 fireBtn.addEventListener('touchstart', (e) => {
@@ -189,12 +185,18 @@ function resetGame() {
   enemies.reset();
 }
 
-// ===== START =====
-dragon.img.onload = () => {
+// ===== START (FIXED) =====
+function startGame() {
   updateHomeStats();
   homeScreen.style.display = 'flex';
   requestAnimationFrame(loop);
-};
+}
+
+if (dragon.img.complete) {
+  startGame();
+} else {
+  dragon.img.onload = startGame;
+}
 
 // ===== LOOP =====
 function loop(time) {
@@ -264,4 +266,5 @@ function loop(time) {
   }
 
   requestAnimationFrame(loop);
+}
 }
