@@ -59,7 +59,7 @@ const obstacles = (() => {
     }
   }
 
-  // ===== SMOOTH GROUND (FIXES JUMPING) =====
+  // ===== FIXED GROUND (NO JUMPING) =====
   function getGroundY(x) {
     for (let i = 0; i < mountain.length - 1; i++) {
       const m1 = mountain[i];
@@ -85,49 +85,48 @@ const obstacles = (() => {
 
     const t = Math.min(1, (window.stats?.time || 0) / 60);
 
-    // tighter over time
-    const gapSize = 150 - (t * 60);
+    // spacing between trees (natural look)
+    const spacing = 130 - (t * 30);
 
-    const screenH = vh();
+    let height1, height2;
 
-    let gapCenter;
-
-    const pattern = Math.random();
-
-    if (pattern < 0.33) {
-      gapCenter = screenH * 0.75; // LOW
-    } else if (pattern < 0.66) {
-      gapCenter = screenH * 0.35; // HIGH
+    if (Math.random() < 0.5) {
+      // strong LOW → HIGH
+      height1 = 200;
+      height2 = 60;
     } else {
-      gapCenter = screenH * 0.55; // MID
+      // strong HIGH → LOW
+      height1 = 60;
+      height2 = 200;
     }
 
-    gapCenter += (Math.random() - 0.5) * 30;
+    // slight variation (keeps natural feel)
+    height1 += (Math.random() - 0.5) * 10;
+    height2 += (Math.random() - 0.5) * 10;
 
-    const heightTop = screenH - (gapCenter + gapSize / 2);
-    const heightBottom = gapCenter - gapSize / 2;
-
+    // FIRST TREE
     trees.push({
       x: baseX,
       width: 40,
-      height: heightTop,
-      y: groundY - heightTop,
+      height: height1,
+      y: groundY - height1,
       burning: false,
       burnTime: 0,
       counted: false
     });
 
+    // SECOND TREE (spaced — NOT stacked)
     trees.push({
-      x: baseX,
+      x: baseX + spacing,
       width: 40,
-      height: heightBottom,
-      y: groundY - heightBottom,
+      height: height2,
+      y: groundY - height2,
       burning: false,
       burnTime: 0,
       counted: false
     });
 
-    treeCooldown = 140 - (t * 60);
+    treeCooldown = 160 - (t * 60);
   }
 
   // ===== INIT =====
@@ -169,11 +168,12 @@ const obstacles = (() => {
     if (treeCooldown <= 0) spawnTreePair();
 
     for (const t of trees) {
+
       t.x -= groundSpeed;
 
-      // smooth lock
+      // HARD LOCK (no smoothing = no wobble)
       const gy = getGroundY(t.x);
-      t.y += ((gy - t.height) - t.y) * 0.35;
+      t.y = gy - t.height;
 
       if (t.burning) t.burnTime--;
     }
@@ -227,7 +227,7 @@ const obstacles = (() => {
     }
   }
 
-  // ===== DRAW (unchanged visuals) =====
+  // ===== DRAW (unchanged) =====
   function draw(ctx) {
 
     const flicker = Math.random() * 30;
