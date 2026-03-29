@@ -176,21 +176,27 @@ const obstacles = (() => {
     const groundY = getGroundY(dragon.x);
     if (dragon.y + dragon.size / 2 > groundY) onHit();
 
-    // ===== FIXED TREE COLLISION (CANOPY + TRUNK) =====
-    for (const t of trees) {
+    // ===== BALANCED TREE COLLISION =====
+for (const t of trees) {
 
-      if (t.burning) continue;
+  if (t.burning) continue;
 
-      // full tree hitbox (no more top forgiveness)
-      if (
-        dragon.x + dragon.size / 2 > t.x &&
-        dragon.x - dragon.size / 2 < t.x + t.width &&
-        dragon.y + dragon.size / 2 > t.y &&
-        dragon.y - dragon.size / 2 < t.y + t.height
-      ) {
-        onHit();
-      }
-    }
+  // tighter, centered hitbox (not full width, not just trunk)
+  const hitX = t.x + t.width * 0.2;
+  const hitW = t.width * 0.6;
+
+  const hitY = t.y + t.height * 0.25;
+  const hitH = t.height * 0.75;
+
+  if (
+    dragon.x + dragon.size * 0.4 > hitX &&
+    dragon.x - dragon.size * 0.4 < hitX + hitW &&
+    dragon.y + dragon.size * 0.4 > hitY &&
+    dragon.y - dragon.size * 0.4 < hitY + hitH
+  ) {
+    onHit();
+  }
+}
 
     // ===== CEILING (prevents flying over everything) =====
     if (dragon.y - dragon.size / 2 < 40) onHit();
