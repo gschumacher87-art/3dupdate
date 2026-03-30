@@ -11,6 +11,10 @@ const lift = -8;
 let fireballs = [];
 let fireCooldown = 0;
 
+// ===== BOOST (ADDED) =====
+let shotBoost = 0;
+let boostTimer = 0;
+
 // ===== INIT =====
 function init(viewWidth, viewHeight) {
   size = Math.floor(viewWidth() * 0.12);
@@ -25,6 +29,9 @@ function reset(viewWidth, viewHeight) {
 
   fireballs = [];
   fireCooldown = 0;
+
+  shotBoost = 0;
+  boostTimer = 0;
 
   x = Math.floor(viewWidth() * 0.2);
   y = Math.floor(viewHeight() * 0.45);
@@ -49,6 +56,7 @@ function update(viewWidth, viewHeight, enemies = [], input) {
   velocity = Math.round(velocity * 1000) / 1000;
 
   if (fireCooldown > 0) fireCooldown--;
+  if (boostTimer > 0) boostTimer--; // ADDED
 
   for (const f of fireballs) {
     f.x += f.vx;
@@ -69,6 +77,13 @@ function update(viewWidth, viewHeight, enemies = [], input) {
       ) {
         e.dead = true;
         f.dead = true;
+
+        // ===== BOOST BUILD (ADDED) =====
+        shotBoost++;
+        if (shotBoost >= 3) {
+          boostTimer = 120;
+          shotBoost = 0;
+        }
       }
     }
   }
@@ -96,13 +111,12 @@ function fire() {
   fireballs.push({
     x: x + size / 2,
     y: y,
-    vx: 8,
-    size: 10,
+    vx: boostTimer > 0 ? 12 : 8,   // ADDED
+    size: boostTimer > 0 ? 14 : 10, // ADDED
     trail: [],
     dead: false
   });
 
-  // ✅ FIX: add slight lift when shooting (removes drop feel)
   velocity -= 0.2;
 }
 
