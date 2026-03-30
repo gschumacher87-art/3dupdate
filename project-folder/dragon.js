@@ -76,9 +76,14 @@ function update(viewWidth, viewHeight, enemies = [], input) {
         f.dead = true;
 
         shotBoost++;
-        if (shotBoost >= 3) {
-          boostTimer = 120;
-          shotBoost = 0;
+
+        // ===== BOOST LOGIC FIX =====
+        if (shotBoost === 1 && boostTimer <= 0) {
+          boostTimer = 300;
+        }
+
+        if (shotBoost % 5 === 0) {
+          boostTimer += 300;
         }
       }
     }
@@ -126,15 +131,24 @@ function draw(ctx) {
   const drawX = Math.round(x - size / 2);
   const drawY = Math.round(y - size / 2);
 
-  ctx.drawImage(dragonImg, drawX, drawY, size, size);
-
+  // ===== REAL GLOW (NO CIRCLE) =====
   if (boostTimer > 0) {
-    ctx.strokeStyle = 'rgba(0,150,255,0.8)';
-    ctx.lineWidth = 4;
+    const glow = ctx.createRadialGradient(
+      x, y, size * 0.2,
+      x, y, size * 1.2
+    );
+
+    glow.addColorStop(0, 'rgba(0,150,255,0.35)');
+    glow.addColorStop(0.4, 'rgba(0,150,255,0.2)');
+    glow.addColorStop(1, 'rgba(0,150,255,0)');
+
+    ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(x, y, size * 0.7, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.arc(x, y, size * 1.2, 0, Math.PI * 2);
+    ctx.fill();
   }
+
+  ctx.drawImage(dragonImg, drawX, drawY, size, size);
 
   for (const f of fireballs) {
     for (let i = 0; i < f.trail.length; i++) {
@@ -196,6 +210,6 @@ window.dragon = {
   draw,
   get,
   getFireballs,
-  activateBoost, // ADDED
+  activateBoost,
   img: dragonImg
 };
