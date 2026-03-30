@@ -11,7 +11,7 @@ const lift = -8;
 let fireballs = [];
 let fireCooldown = 0;
 
-// ===== BOOST (ADDED) =====
+// ===== BOOST =====
 let shotBoost = 0;
 let boostTimer = 0;
 
@@ -40,7 +40,6 @@ function reset(viewWidth, viewHeight) {
 // ===== UPDATE =====
 function update(viewWidth, viewHeight, enemies = [], input) {
 
-  // ===== CONTROLLED FLIGHT =====
   if (input && input.up) {
     velocity -= 0.8;
   } else {
@@ -56,16 +55,14 @@ function update(viewWidth, viewHeight, enemies = [], input) {
   velocity = Math.round(velocity * 1000) / 1000;
 
   if (fireCooldown > 0) fireCooldown--;
-  if (boostTimer > 0) boostTimer--; // ADDED
+  if (boostTimer > 0) boostTimer--;
 
   for (const f of fireballs) {
     f.x += f.vx;
 
-    // ===== TRAIL =====
     f.trail.push({ x: f.x, y: f.y });
     if (f.trail.length > 5) f.trail.shift();
 
-    // ===== SAFE ENEMY HIT =====
     for (const e of (enemies || [])) {
       if (!e || e.dead) continue;
 
@@ -78,7 +75,6 @@ function update(viewWidth, viewHeight, enemies = [], input) {
         e.dead = true;
         f.dead = true;
 
-        // ===== BOOST BUILD (ADDED) =====
         shotBoost++;
         if (shotBoost >= 3) {
           boostTimer = 120;
@@ -106,13 +102,13 @@ function flap(gameOver, resetGame) {
 function fire() {
   if (fireCooldown > 0) return;
 
-  fireCooldown = 15;
+  fireCooldown = boostTimer > 0 ? 5 : 15; // rapid fire
 
   fireballs.push({
     x: x + size / 2,
     y: y,
-    vx: boostTimer > 0 ? 12 : 8,   // ADDED
-    size: boostTimer > 0 ? 14 : 10, // ADDED
+    vx: boostTimer > 0 ? 12 : 8,
+    size: boostTimer > 0 ? 14 : 10,
     trail: [],
     dead: false
   });
@@ -127,13 +123,25 @@ function draw(ctx) {
 
   ctx.drawImage(dragonImg, drawX, drawY, size, size);
 
+  // ===== DRAGON GLOW =====
+  if (boostTimer > 0) {
+    ctx.strokeStyle = 'rgba(0,150,255,0.8)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.7, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
   // ===== FIRE TRAIL =====
   for (const f of fireballs) {
     for (let i = 0; i < f.trail.length; i++) {
       const t = f.trail[i];
       const alpha = i / f.trail.length;
 
-      ctx.fillStyle = `rgba(255,150,0,${alpha})`;
+      ctx.fillStyle = boostTimer > 0
+        ? `rgba(0,150,255,${alpha})`
+        : `rgba(255,150,0,${alpha})`;
+
       ctx.beginPath();
       ctx.arc(t.x, t.y, 4 * alpha, 0, Math.PI * 2);
       ctx.fill();
@@ -147,9 +155,15 @@ function draw(ctx) {
       f.x, f.y, f.size
     );
 
-    gradient.addColorStop(0, 'yellow');
-    gradient.addColorStop(0.5, 'orange');
-    gradient.addColorStop(1, 'red');
+    if (boostTimer > 0) {
+      gradient.addColorStop(0, '#aee6ff');
+      gradient.addColorStop(0.5, '#33bbff');
+      gradient.addColorStop(1, '#0066ff');
+    } else {
+      gradient.addColorStop(0, 'yellow');
+      gradient.addColorStop(0.5, 'orange');
+      gradient.addColorStop(1, 'red');
+    }
 
     ctx.fillStyle = gradient;
     ctx.beginPath();
