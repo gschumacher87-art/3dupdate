@@ -102,7 +102,7 @@ function flap(gameOver, resetGame) {
 function fire() {
   if (fireCooldown > 0) return;
 
-  fireCooldown = boostTimer > 0 ? 5 : 15; // rapid fire
+  fireCooldown = boostTimer > 0 ? 5 : 15;
 
   fireballs.push({
     x: x + size / 2,
@@ -116,6 +116,11 @@ function fire() {
   velocity -= 0.2;
 }
 
+// ===== BOOST TRIGGER (FIX) =====
+function activateBoost() {
+  boostTimer = 120;
+}
+
 // ===== DRAW =====
 function draw(ctx) {
   const drawX = Math.round(x - size / 2);
@@ -123,7 +128,6 @@ function draw(ctx) {
 
   ctx.drawImage(dragonImg, drawX, drawY, size, size);
 
-  // ===== DRAGON GLOW =====
   if (boostTimer > 0) {
     ctx.strokeStyle = 'rgba(0,150,255,0.8)';
     ctx.lineWidth = 4;
@@ -132,7 +136,6 @@ function draw(ctx) {
     ctx.stroke();
   }
 
-  // ===== FIRE TRAIL =====
   for (const f of fireballs) {
     for (let i = 0; i < f.trail.length; i++) {
       const t = f.trail[i];
@@ -148,7 +151,6 @@ function draw(ctx) {
     }
   }
 
-  // ===== FIREBALL =====
   for (const f of fireballs) {
     const gradient = ctx.createRadialGradient(
       f.x, f.y, 2,
@@ -194,5 +196,6 @@ window.dragon = {
   draw,
   get,
   getFireballs,
+  activateBoost, // ADDED
   img: dragonImg
 };
