@@ -103,7 +103,7 @@ function fire() {
   });
 
   // ✅ FIX: add slight lift when shooting (removes drop feel)
-  velocity -= 1;
+  velocity -= 0.2;
 }
 
 // ===== DRAW =====
