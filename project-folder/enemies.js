@@ -2,14 +2,14 @@ const enemies = (() => {
 
   let list = [];
 
-  // ===== BOOST (ADDED) =====
+  // ===== BOOST =====
   let shotBoost = 0;
 
   function init() {}
 
   function reset() {
     list = [];
-    shotBoost = 0; // ADDED
+    shotBoost = 0;
   }
 
   // ===== SPAWN CONTROL =====
@@ -66,7 +66,6 @@ const enemies = (() => {
     const time = window.stats?.time || 0;
     const config = getSpawnConfig(time);
 
-    // ===== CONTROLLED SPAWN =====
     if (list.length < config.max && config.type !== 'none') {
       if (Math.random() < 0.05) {
         spawn(viewWidth, viewHeight, config.type);
@@ -78,14 +77,12 @@ const enemies = (() => {
 
       e.x -= 3;
 
-      // ===== FLOAT =====
       e.wave += 0.08;
       e.y += Math.sin(e.wave) * 1.2;
 
       if (e.y < 40) e.y = 40;
       if (e.y > viewHeight() * 0.7) e.y = viewHeight() * 0.7;
 
-      // ===== GROWTH =====
       e.life += 1 / 60;
 
       if (e.state === 'small' && e.life > 3) {
@@ -100,7 +97,6 @@ const enemies = (() => {
         e.size = 36;
       }
 
-      // ===== COLLISION =====
       const dx = e.x - dragon.x;
       const dy = e.y - dragon.y;
 
@@ -133,15 +129,16 @@ const enemies = (() => {
               e.counted = true;
               if (window.stats) window.stats.enemies++;
 
-              // ===== BOOST TRIGGER (ADDED) =====
+              // ===== BOOST TRIGGER =====
               shotBoost++;
               if (shotBoost >= 3) {
-                window.dragon.activateBoost?.();
+                if (window.dragon.activateBoost) {
+                  window.dragon.activateBoost();
+                }
                 shotBoost = 0;
               }
             }
           } else {
-            // ===== SHRINK ON HIT =====
             if (e.hp === 2) {
               e.state = 'medium';
               e.size = 28;
@@ -164,7 +161,6 @@ const enemies = (() => {
 
       const y = e.y;
 
-      // ===== COLOR BY SIZE =====
       if (e.state === 'small') ctx.fillStyle = '#ffd400';
       if (e.state === 'medium') ctx.fillStyle = '#ff9f00';
       if (e.state === 'large') ctx.fillStyle = '#ff3b00';
@@ -185,7 +181,6 @@ const enemies = (() => {
       ctx.fill();
       ctx.stroke();
 
-      // ===== EYES =====
       ctx.fillStyle = '#000';
       ctx.beginPath();
       ctx.arc(e.x - e.size * 0.15, y - e.size * 0.2, 2, 0, Math.PI * 2);
