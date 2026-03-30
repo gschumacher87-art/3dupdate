@@ -2,10 +2,14 @@ const enemies = (() => {
 
   let list = [];
 
+  // ===== BOOST (ADDED) =====
+  let shotBoost = 0;
+
   function init() {}
 
   function reset() {
     list = [];
+    shotBoost = 0; // ADDED
   }
 
   // ===== SPAWN CONTROL =====
@@ -128,6 +132,13 @@ const enemies = (() => {
             if (!e.counted) {
               e.counted = true;
               if (window.stats) window.stats.enemies++;
+
+              // ===== BOOST TRIGGER (ADDED) =====
+              shotBoost++;
+              if (shotBoost >= 3) {
+                window.dragon.activateBoost?.();
+                shotBoost = 0;
+              }
             }
           } else {
             // ===== SHRINK ON HIT =====
